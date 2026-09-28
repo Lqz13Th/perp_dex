@@ -131,5 +131,5 @@ jobs:
       - name: Check packaged files
         run: cargo package --list
 
-      - name: Verify package
-        run: cargo package --all-features
+      - name: Verify publish package
+        run: cargo publish --dry-run --all-features
