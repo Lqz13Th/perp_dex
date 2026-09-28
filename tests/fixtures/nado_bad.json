@@ -1,0 +1,13 @@
+{
+ "sub": {
+  "method": "subscribe",
+  "stream": {
+   "type": "book_depth",
+   "product_id": 9999
+  },
+  "id": 1
+ },
+ "frames": [
+  "{\"result\":null,\"error\":\"The provided 'product_id' is invalid. Please verify and input a valid 'product_id'.\",\"id\":1}"
+ ]
+}

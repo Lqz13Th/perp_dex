@@ -1,0 +1,14 @@
+{
+ "sub": {
+  "method": "subscribe",
+  "params": {
+   "source": "book",
+   "symbol": "NOPE",
+   "agg_level": 1
+  }
+ },
+ "frames": [
+  "{\"error\":\"Symbol not found\"}",
+  "{\"channel\":\"pong\"}"
+ ]
+}

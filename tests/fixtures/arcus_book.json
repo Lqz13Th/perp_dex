@@ -1,0 +1,22 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "l2OrderbookUpdates",
+  "id": "NVDA-USD",
+  "nLevels": 5
+ },
+ "frames": [
+  "{\"type\":\"connected\",\"connection_id\":\"1790579262958621795\"}",
+  "{\"type\":\"subscribed\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.32\",\"1.1193958\"],[\"223.3\",\"1.7891168\"],[\"223.29\",\"2.6855572\"],[\"223.25\",\"1.3437653\"],[\"223.23\",\"2.1383957\"]],\"asks\":[[\"223.34\",\"4.2535757\"],[\"223.36\",\"0.5351742\"],[\"223.39\",\"0.5365867\"],[\"223.4\",\"1.342861\"],[\"223.41\",\"11.195751\"]],\"lastSequenceId\":53028081,\"globalSequenceId\":2615941453,\"timestamp\":1790579263089004}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.1\",\"0\"]],\"asks\":[],\"lastSequenceId\":53028082,\"globalSequenceId\":2615942154}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.29\",\"0.4470572\"]],\"asks\":[[\"223.34\",\"2.0150757\"]],\"lastSequenceId\":53028083,\"globalSequenceId\":2615942157}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.27\",\"2.2387\"]],\"asks\":[],\"lastSequenceId\":53028084,\"globalSequenceId\":2615942158}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[],\"asks\":[[\"223.33\",\"2.2387\"]],\"lastSequenceId\":53028085,\"globalSequenceId\":2615942158}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[],\"asks\":[[\"223.63\",\"0\"]],\"lastSequenceId\":53028086,\"globalSequenceId\":2615942159}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[],\"asks\":[[\"223.43\",\"0\"],[\"223.41\",\"62.7097886\"]],\"lastSequenceId\":53028087,\"globalSequenceId\":2615942160}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.04\",\"588.4594691\"],[\"222.95\",\"0\"]],\"asks\":[],\"lastSequenceId\":53028088,\"globalSequenceId\":2615942161}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.05\",\"344.8301637\"]],\"asks\":[],\"lastSequenceId\":53028089,\"globalSequenceId\":2615942165}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[],\"asks\":[[\"223.58\",\"344.8301637\"]],\"lastSequenceId\":53028090,\"globalSequenceId\":2615942166}}",
+  "{\"type\":\"channel_data\",\"channel\":\"l2OrderbookUpdates\",\"id\":\"NVDA-USD\",\"contents\":{\"bids\":[[\"223.01\",\"50.5618941\"]],\"asks\":[],\"lastSequenceId\":53028091,\"globalSequenceId\":2615942168}}"
+ ]
+}

@@ -1,0 +1,10 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "order_book/9999"
+ },
+ "frames": [
+  "{\"session_id\":\"5e5f6ac0-2331-43d4-9091-f62df2fb6476\",\"type\":\"connected\"}",
+  "{\"error\":{\"code\":30005,\"message\":\"Invalid Channel:  (marketId)\"}}"
+ ]
+}

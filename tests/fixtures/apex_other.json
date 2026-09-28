@@ -1,0 +1,16 @@
+{
+ "sub": {
+  "op": "subscribe",
+  "args": [
+   "instrumentInfo.H.BTCUSDT"
+  ]
+ },
+ "frames": [
+  "{\"topic\":\"instrumentInfo.H.BTCUSDT\",\"type\":\"snapshot\",\"data\":{\"symbol\":\"BTCUSDT\",\"lastPrice\":\"82638.2\",\"price24hPcnt\":\"-0.0226207203243494\",\"highPrice24h\":\"85132\",\"lowPrice24h\":\"82585.4\",\"turnover24h\":\"296530774.8808\",\"volume24h\":\"3523.714\",\"nextFundingTime\":\"2026-09-28T10:00:00Z\",\"indexPrice\":\"82617.9\",\"openInterest\":\"1559.11\",\"tradeCount\":\"24887\",\"symbolStatus\":\"0\",\"markPrice\":\"82628.86\",\"fundingRate\":\"0.0000125\",\"predictedFundingRate\":\"0.0000125\"},\"cs\":66026769693,\"ts\":1790586657371686}",
+  "{\"topic\":\"instrumentInfo.H.BTCUSDT\",\"type\":\"delta\",\"data\":{\"symbol\":\"BTCUSDT\",\"indexPrice\":\"82627.94\",\"symbolStatus\":\"0\",\"markPrice\":\"82619.99\"},\"cs\":66026770210,\"ts\":1790586657471540}",
+  "{\"topic\":\"instrumentInfo.H.BTCUSDT\",\"type\":\"delta\",\"data\":{\"symbol\":\"BTCUSDT\",\"symbolStatus\":\"0\",\"markPrice\":\"82628.79\"},\"cs\":66026770321,\"ts\":1790586657671536}",
+  "{\"topic\":\"instrumentInfo.H.BTCUSDT\",\"type\":\"delta\",\"data\":{\"symbol\":\"BTCUSDT\",\"symbolStatus\":\"0\"},\"cs\":66026770591,\"ts\":1790586657771600}",
+  "{\"topic\":\"instrumentInfo.H.BTCUSDT\",\"type\":\"delta\",\"data\":{\"symbol\":\"BTCUSDT\",\"symbolStatus\":\"0\"},\"cs\":66026771049,\"ts\":1790586658071522}",
+  "{\"success\":true,\"ret_msg\":\"\",\"conn_id\":\"6b26cbf6-7944-4cfa-9ac5-d2a4ae3fe503\",\"request\":{\"op\":\"subscribe\",\"args\":[\"instrumentInfo.H.BTCUSDT\"]}}"
+ ]
+}

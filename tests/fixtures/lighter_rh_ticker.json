@@ -1,0 +1,20 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "ticker/26"
+ },
+ "frames": [
+  "{\"session_id\":\"d4f0897d-8927-46a0-bef8-8f0c7d84fb78\",\"type\":\"connected\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585561997331,\"nonce\":2529583713,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.1451\"},\"b\":{\"price\":\"768.73\",\"size\":\"0.1300\"},\"last_updated_at\":1790585561997331},\"timestamp\":1790585562132,\"type\":\"subscribed/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585562243440,\"nonce\":2529583781,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.1451\"},\"b\":{\"price\":\"768.73\",\"size\":\"0.2300\"},\"last_updated_at\":1790585562243440},\"timestamp\":1790585562244,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585563818422,\"nonce\":2529584585,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4370\"},\"b\":{\"price\":\"768.73\",\"size\":\"0.2300\"},\"last_updated_at\":1790585563818422},\"timestamp\":1790585563819,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585564097847,\"nonce\":2529584864,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4370\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.1300\"},\"last_updated_at\":1790585564097847},\"timestamp\":1790585564099,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585564136192,\"nonce\":2529584894,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4370\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.2600\"},\"last_updated_at\":1790585564136192},\"timestamp\":1790585564136,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585564349309,\"nonce\":2529584982,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4370\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.3600\"},\"last_updated_at\":1790585564349309},\"timestamp\":1790585564349,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585566272793,\"nonce\":2529586202,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4370\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.0721\"},\"last_updated_at\":1790585566272793},\"timestamp\":1790585566277,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585566323504,\"nonce\":2529586248,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.5670\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.0721\"},\"last_updated_at\":1790585566323504},\"timestamp\":1790585566324,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585566504106,\"nonce\":2529586369,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.5670\"},\"b\":{\"price\":\"768.74\",\"size\":\"0.2021\"},\"last_updated_at\":1790585566504106},\"timestamp\":1790585566505,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585566533437,\"nonce\":2529586413,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4369\"},\"b\":{\"price\":\"768.75\",\"size\":\"0.1301\"},\"last_updated_at\":1790585566533437},\"timestamp\":1790585566534,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:26\",\"last_updated_at\":1790585566803698,\"nonce\":2529586604,\"ticker\":{\"s\":\"SPY\",\"a\":{\"price\":\"768.77\",\"size\":\"0.4369\"},\"b\":{\"price\":\"768.75\",\"size\":\"0.1743\"},\"last_updated_at\":1790585566803698},\"timestamp\":1790585566805,\"type\":\"update/ticker\"}"
+ ]
+}

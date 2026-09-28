@@ -1,0 +1,123 @@
+[package]
+name = "perp_dex"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+readme = "README.md"
+license = "Apache-2.0"
+
+keywords = ["trading", "perpetual", "dex", "websocket", "quant"]
+categories = [
+    "api-bindings",
+    "asynchronous",
+    "finance",
+]
+
+repository = "https://github.com/Lqz13Th/perp_dex"
+homepage = "https://github.com/Lqz13Th/perp_dex"
+
+description = "Stock-perp DEX venues for extrema_infra."
+
+[dependencies]
+extrema_infra = { version = "0.5.2", features = ["hyperliquid"] }
+futures-util = { version = "0.3.34", optional = true }
+reqwest = { version = "0.13.5", features = ["json", "gzip"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+tracing = "0.1.44"
+
+[dev-dependencies]
+futures-util = "0.3.34"
+tokio = { version = "1.53.1", features = ["full"] }
+tokio-tungstenite = "0.30.0"
+tracing-subscriber = "0.3.23"
+
+[features]
+default = ["all"]
+
+all = [
+    "apex",
+    "lighter",
+    "aster",
+    "arcus",
+    "edgex",
+    "extended",
+    "grvt",
+    "nado",
+    "pacifica",
+]
+
+lighter = []
+aster = []
+arcus = []
+apex = []
+edgex = ["dep:futures-util"]
+extended = []
+grvt = ["dep:futures-util"]
+nado = []
+pacifica = []
+
+[[example]]
+name = "stock_bbo"
+required-features = ["all"]
+
+[[test]]
+name = "ws_replay"
+required-features = ["all"]
+
+[[test]]
+name = "live_rest"
+required-features = ["all"]
+
+[[test]]
+name = "live_ws"
+required-features = ["all"]
+
+[[test]]
+name = "grvt_replay"
+required-features = ["all"]
+
+[[test]]
+name = "grvt_live"
+required-features = ["all"]
+
+[[test]]
+name = "pacifica_replay"
+required-features = ["all"]
+
+[[test]]
+name = "pacifica_live"
+required-features = ["all"]
+
+[[test]]
+name = "edgex_replay"
+required-features = ["all"]
+
+[[test]]
+name = "edgex_live"
+required-features = ["all"]
+
+[[test]]
+name = "nado_replay"
+required-features = ["all"]
+
+[[test]]
+name = "nado_live"
+required-features = ["all"]
+
+[[test]]
+name = "apex_replay"
+required-features = ["all"]
+
+[[test]]
+name = "apex_live"
+required-features = ["all"]
+
+[[test]]
+name = "extended_replay"
+required-features = ["all"]
+
+[[test]]
+name = "extended_live"
+required-features = ["all"]

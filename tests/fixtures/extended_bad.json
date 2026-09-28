@@ -1,0 +1,4 @@
+{
+ "sub": "wss://api.starknet.extended.exchange/stream.extended.exchange/v1/orderbooks/NOPE-USD",
+ "frames": []
+}

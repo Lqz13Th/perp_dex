@@ -1,0 +1,27 @@
+{
+ "sub": {
+  "jsonrpc": "2.0",
+  "method": "subscribe",
+  "params": {
+   "stream": "v1.book.d",
+   "selectors": [
+    "BTC_USDT_Perp@50"
+   ]
+  },
+  "id": 1
+ },
+ "frames": [
+  "{\"jsonrpc\":\"2.0\",\"result\":{\"stream\":\"v1.book.d\",\"subs\":[\"BTC_USDT_Perp@50\"],\"unsubs\":[],\"num_snapshots\":[1],\"first_sequence_number\":[\"36481\"],\"latest_sequence_number\":[\"36480\"]},\"id\":1,\"method\":\"subscribe\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"0\",\"feed\":{\"event_time\":\"1790586064400000000\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82966.3\",\"size\":\"0.531\",\"num_orders\":3},{\"price\":\"82964.0\",\"size\":\"0.663\",\"num_orders\":2},{\"price\":\"82961.8\",\"size\":\"0.029\",\"num_orders\":1},{\"price\":\"82961.4\",\"size\":\"1.048\",\"num_orders\":1},{\"price\":\"82959.2\",\"size\":\"0.002\",\"num_orders\":1}],\"asks\":[{\"price\":\"82966.4\",\"size\":\"3.842\",\"num_orders\":7},{\"price\":\"82966.5\",\"size\":\"0.006\",\"num_orders\":1},{\"price\":\"82966.9\",\"size\":\"0.081\",\"num_orders\":1},{\"price\":\"82967.6\",\"size\":\"0.012\",\"num_orders\":1},{\"price\":\"82969.1\",\"size\":\"0.291\",\"num_orders\":1}]},\"prev_sequence_number\":\"0\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36481\",\"feed\":{\"event_time\":\"1790586064900066293\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82907.9\",\"size\":\"1.334\",\"num_orders\":1},{\"price\":\"82907.3\",\"size\":\"0.0\",\"num_orders\":0}],\"asks\":[]},\"prev_sequence_number\":\"36480\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36482\",\"feed\":{\"event_time\":\"1790586065000052600\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[],\"asks\":[{\"price\":\"82993.0\",\"size\":\"1.236\",\"num_orders\":1},{\"price\":\"82993.7\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82997.1\",\"size\":\"2.409\",\"num_orders\":1},{\"price\":\"82997.8\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"83001.1\",\"size\":\"2.409\",\"num_orders\":1}]},\"prev_sequence_number\":\"36481\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36483\",\"feed\":{\"event_time\":\"1790586065050008045\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82961.4\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82960.8\",\"size\":\"1.138\",\"num_orders\":1}],\"asks\":[]},\"prev_sequence_number\":\"36482\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36484\",\"feed\":{\"event_time\":\"1790586065100057178\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82950.4\",\"size\":\"1.325\",\"num_orders\":1},{\"price\":\"82949.7\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82946.8\",\"size\":\"1.837\",\"num_orders\":1},{\"price\":\"82946.1\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82942.8\",\"size\":\"2.41\",\"num_orders\":1}],\"asks\":[]},\"prev_sequence_number\":\"36483\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36485\",\"feed\":{\"event_time\":\"1790586065150050803\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82942.5\",\"size\":\"0.031\",\"num_orders\":1}],\"asks\":[]},\"prev_sequence_number\":\"36484\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36486\",\"feed\":{\"event_time\":\"1790586065200004946\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82908.6\",\"size\":\"1.334\",\"num_orders\":1},{\"price\":\"82907.9\",\"size\":\"0.0\",\"num_orders\":0}],\"asks\":[]},\"prev_sequence_number\":\"36485\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36487\",\"feed\":{\"event_time\":\"1790586065300033459\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82957.4\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82953.3\",\"size\":\"0.0\",\"num_orders\":0}],\"asks\":[]},\"prev_sequence_number\":\"36486\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36488\",\"feed\":{\"event_time\":\"1790586065350010780\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82958.0\",\"size\":\"1.504\",\"num_orders\":1},{\"price\":\"82953.9\",\"size\":\"2.41\",\"num_orders\":1}],\"asks\":[]},\"prev_sequence_number\":\"36487\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36489\",\"feed\":{\"event_time\":\"1790586065700002475\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82915.6\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82911.5\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82908.6\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82904.3\",\"size\":\"0.0\",\"num_orders\":0}],\"asks\":[]},\"prev_sequence_number\":\"36488\"}",
+  "{\"stream\":\"v1.book.d\",\"selector\":\"BTC_USDT_Perp@50\",\"sequence_number\":\"36490\",\"feed\":{\"event_time\":\"1790586065750000721\",\"instrument\":\"BTC_USDT_Perp\",\"bids\":[{\"price\":\"82958.0\",\"size\":\"0.0\",\"num_orders\":0},{\"price\":\"82957.4\",\"size\":\"1.602\",\"num_orders\":1},{\"price\":\"82914.8\",\"size\":\"1.84\",\"num_orders\":1},{\"price\":\"82910.8\",\"size\":\"2.41\",\"num_orders\":1},{\"price\":\"82907.6\",\"size\":\"1.334\",\"num_orders\":1}],\"asks\":[]},\"prev_sequence_number\":\"36489\"}"
+ ]
+}

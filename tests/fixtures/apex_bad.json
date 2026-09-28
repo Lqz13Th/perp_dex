@@ -1,0 +1,14 @@
+{
+ "sub": {
+  "op": "subscribe",
+  "args": [
+   "orderBook25.H.NOPEUSDT"
+  ]
+ },
+ "frames": [
+  "{\"success\":false,\"ret_msg\":\"error:handler not found\",\"conn_id\":\"6700e2c7-8b7f-48d1-9ce5-963a5bb71055\",\"request\":{\"op\":\"subscribe\",\"args\":[\"orderBook25.H.NOPEUSDT\"]}}",
+  "{\"op\":\"ping\",\"args\":[\"1790586416518\"]}",
+  "{\"op\":\"ping\",\"args\":[\"1790586431517\"]}",
+  "{\"op\":\"ping\",\"args\":[\"1790586446517\"]}"
+ ]
+}

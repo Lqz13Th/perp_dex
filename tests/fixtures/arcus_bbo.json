@@ -1,0 +1,21 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "bbo",
+  "id": "BTC-USD"
+ },
+ "frames": [
+  "{\"type\":\"connected\",\"connection_id\":\"1790579262976135183\"}",
+  "{\"type\":\"subscribed\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83112\",\"size\":\"0.00518048\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.28025441\"},\"lastSequenceId\":237692175,\"globalSequenceId\":2615941453,\"timestamp\":1790579263089004}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83112\",\"size\":\"0.00518048\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.28090341\"},\"timestamp\":1790579263125868,\"lastSequenceId\":237692179,\"globalSequenceId\":2615941511}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83112\",\"size\":\"0.00518048\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.28691341\"},\"timestamp\":1790579263206636,\"lastSequenceId\":237692183,\"globalSequenceId\":2615941568}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83112\",\"size\":\"0.00518048\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.28090341\"},\"timestamp\":1790579263350746,\"lastSequenceId\":237692194,\"globalSequenceId\":2615941688}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.28090341\"},\"timestamp\":1790579263407760,\"lastSequenceId\":237692206,\"globalSequenceId\":2615941727}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"3.18329909\"},\"timestamp\":1790579263416272,\"lastSequenceId\":237692207,\"globalSequenceId\":2615941734}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"3.12313952\"},\"timestamp\":1790579263436854,\"lastSequenceId\":237692210,\"globalSequenceId\":2615941747}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"2.88250125\"},\"timestamp\":1790579263436860,\"lastSequenceId\":237692211,\"globalSequenceId\":2615941748}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"1.6793099\"},\"timestamp\":1790579263438977,\"lastSequenceId\":237692212,\"globalSequenceId\":2615941749}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.03\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"1.67810671\"},\"timestamp\":1790579263441134,\"lastSequenceId\":237692214,\"globalSequenceId\":2615941751}}",
+  "{\"type\":\"channel_data\",\"channel\":\"bbo\",\"id\":\"BTC-USD\",\"contents\":{\"bestBid\":{\"price\":\"83106.4\",\"size\":\"0.0348131\"},\"bestAsk\":{\"price\":\"83112.1\",\"size\":\"1.67810671\"},\"timestamp\":1790579263460145,\"lastSequenceId\":237692219,\"globalSequenceId\":2615941764}}"
+ ]
+}

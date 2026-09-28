@@ -1,0 +1,11 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "depth.99999999.15"
+ },
+ "frames": [
+  "{\"sid\":\"f1ee5fe3-b2fc-0523-e207-2a2d31d1e7e7\",\"type\":\"connected\"}",
+  "{\"type\":\"error\",\"request\":\"{\\\"type\\\":\\\"subscribe\\\",\\\"channel\\\":\\\"depth.99999999.15\\\"}\",\"content\":{\"code\":\"GATEWAY_INVALID_CONTRACT_ID\",\"msg\":\"invalid contractId : 99999999\"}}",
+  "{\"type\":\"ping\",\"time\":\"1790586200000\"}"
+ ]
+}

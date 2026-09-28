@@ -1,0 +1,20 @@
+{
+ "sub": {
+  "type": "subscribe",
+  "channel": "ticker/1"
+ },
+ "frames": [
+  "{\"session_id\":\"2691a444-0f22-4b94-ba5c-b58e40968230\",\"type\":\"connected\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263017141,\"nonce\":23190867987,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83105.3\",\"size\":\"2.70442\"},\"b\":{\"price\":\"83094.7\",\"size\":\"0.00240\"},\"last_updated_at\":1790579263017141},\"timestamp\":1790579263025,\"type\":\"subscribed/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263042908,\"nonce\":23190867996,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83098.8\",\"size\":\"0.04047\"},\"b\":{\"price\":\"83094.7\",\"size\":\"0.00240\"},\"last_updated_at\":1790579263042908},\"timestamp\":1790579263049,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263049014,\"nonce\":23190867999,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83097.7\",\"size\":\"3.49712\"},\"b\":{\"price\":\"83094.7\",\"size\":\"0.00240\"},\"last_updated_at\":1790579263049014},\"timestamp\":1790579263053,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263069802,\"nonce\":23190868008,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.01204\"},\"b\":{\"price\":\"83094.7\",\"size\":\"0.00240\"},\"last_updated_at\":1790579263069802},\"timestamp\":1790579263073,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263095021,\"nonce\":23190868021,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.01204\"},\"b\":{\"price\":\"83094.7\",\"size\":\"0.00220\"},\"last_updated_at\":1790579263095021},\"timestamp\":1790579263103,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263105295,\"nonce\":23190868024,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.01204\"},\"b\":{\"price\":\"83091.2\",\"size\":\"0.00013\"},\"last_updated_at\":1790579263105295},\"timestamp\":1790579263109,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263237093,\"nonce\":23190868077,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.02750\"},\"b\":{\"price\":\"83091.2\",\"size\":\"0.00013\"},\"last_updated_at\":1790579263237093},\"timestamp\":1790579263241,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263262786,\"nonce\":23190868087,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.02750\"},\"b\":{\"price\":\"83088.5\",\"size\":\"0.36106\"},\"last_updated_at\":1790579263262786},\"timestamp\":1790579263265,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263299068,\"nonce\":23190868103,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.02750\"},\"b\":{\"price\":\"83088.3\",\"size\":\"0.03008\"},\"last_updated_at\":1790579263299068},\"timestamp\":1790579263305,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263304119,\"nonce\":23190868106,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.03350\"},\"b\":{\"price\":\"83088.3\",\"size\":\"0.03008\"},\"last_updated_at\":1790579263304119},\"timestamp\":1790579263310,\"type\":\"update/ticker\"}",
+  "{\"channel\":\"ticker:1\",\"last_updated_at\":1790579263365288,\"nonce\":23190868134,\"ticker\":{\"s\":\"BTC\",\"a\":{\"price\":\"83094.8\",\"size\":\"0.03350\"},\"b\":{\"price\":\"83088.4\",\"size\":\"0.36106\"},\"last_updated_at\":1790579263365288},\"timestamp\":1790579263369,\"type\":\"update/ticker\"}"
+ ]
+}

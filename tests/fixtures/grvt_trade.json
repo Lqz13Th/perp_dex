@@ -1,0 +1,23 @@
+{
+ "sub": {
+  "jsonrpc": "2.0",
+  "method": "subscribe",
+  "params": {
+   "stream": "v1.trade",
+   "selectors": [
+    "ETH_USDT_Perp@50"
+   ]
+  },
+  "id": 1
+ },
+ "frames": [
+  "{\"jsonrpc\":\"2.0\",\"result\":{\"stream\":\"v1.trade\",\"subs\":[\"ETH_USDT_Perp@50\"],\"unsubs\":[],\"num_snapshots\":[50],\"first_sequence_number\":[\"9599\"],\"latest_sequence_number\":[\"9598\"]},\"id\":1,\"method\":\"subscribe\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"0\",\"feed\":{\"event_time\":\"1790584703879937463\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":false,\"size\":\"19.288\",\"price\":\"2640.85\",\"mark_price\":\"2640.971260895\",\"index_price\":\"2643.173024317\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198820738-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"0\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"0\",\"feed\":{\"event_time\":\"1790584711442848356\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":true,\"size\":\"29.72\",\"price\":\"2641.29\",\"mark_price\":\"2641.280054569\",\"index_price\":\"2643.440698594\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198820794-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"0\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"0\",\"feed\":{\"event_time\":\"1790584722643345553\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":false,\"size\":\"13.559\",\"price\":\"2642.25\",\"mark_price\":\"2642.284581647\",\"index_price\":\"2644.350932214\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198820849-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"0\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"9599\",\"feed\":{\"event_time\":\"1790586069683993871\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":true,\"size\":\"0.334\",\"price\":\"2651.87\",\"mark_price\":\"2651.543208812\",\"index_price\":\"2652.740465649\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198827910-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"9598\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"9600\",\"feed\":{\"event_time\":\"1790586070877875512\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":false,\"size\":\"0.093\",\"price\":\"2651.86\",\"mark_price\":\"2651.540402432\",\"index_price\":\"2652.740465649\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198827915-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"9599\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"9601\",\"feed\":{\"event_time\":\"1790586072892232536\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":false,\"size\":\"0.123\",\"price\":\"2651.86\",\"mark_price\":\"2651.533348231\",\"index_price\":\"2652.724420457\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198827926-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"9600\"}",
+  "{\"stream\":\"v1.trade\",\"selector\":\"ETH_USDT_Perp@50\",\"sequence_number\":\"9602\",\"feed\":{\"event_time\":\"1790586109582034071\",\"instrument\":\"ETH_USDT_Perp\",\"is_taker_buyer\":false,\"size\":\"27.867\",\"price\":\"2649.49\",\"mark_price\":\"2649.42000159\",\"index_price\":\"2651.143257401\",\"interest_rate\":\"0.0\",\"forward_price\":\"0.0\",\"trade_id\":\"198828133-1\",\"venue\":\"ORDERBOOK\",\"is_rpi\":false},\"prev_sequence_number\":\"9601\"}"
+ ]
+}

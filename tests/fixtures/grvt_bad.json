@@ -1,0 +1,16 @@
+{
+ "sub": {
+  "jsonrpc": "2.0",
+  "method": "subscribe",
+  "params": {
+   "stream": "v1.book.d",
+   "selectors": [
+    "NOPE_USDT_Perp@50"
+   ]
+  },
+  "id": 1
+ },
+ "frames": [
+  "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":3000,\"message\":\"Instrument is invalid\"},\"id\":1,\"method\":\"subscribe\"}"
+ ]
+}
