@@ -2,7 +2,6 @@
 name = "perp_dex"
 version = "0.1.0"
 edition = "2024"
-publish = false
 
 readme = "README.md"
 license = "Apache-2.0"
@@ -16,6 +15,7 @@ categories = [
 
 repository = "https://github.com/Lqz13Th/perp_dex"
 homepage = "https://github.com/Lqz13Th/perp_dex"
+documentation = "https://docs.rs/perp_dex"
 
 description = "Stock-perp DEX venues for extrema_infra."
 
@@ -57,6 +57,9 @@ extended = []
 grvt = ["dep:futures-util"]
 nado = []
 pacifica = []
+
+[package.metadata.docs.rs]
+all-features = true
 
 [[example]]
 name = "stock_bbo"

@@ -36,7 +36,7 @@ Public market data only; no signing or order entry yet.
 ```toml
 [dependencies]
 extrema_infra = { version = "0.5.2", features = ["hyperliquid"] }
-perp_dex = { git = "https://github.com/Lqz13Th/perp_dex" }
+perp_dex = "0.1"
 ```
 
 Register a decoder per venue and declare tasks on its `Market`:
