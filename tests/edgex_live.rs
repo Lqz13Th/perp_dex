@@ -16,6 +16,7 @@ use reqwest::Client;
 const BTC: &str = "@30000001";
 const NVDA: &str = "@30000020";
 const RUN_FOR: Duration = Duration::from_secs(30);
+const PONG_WINDOW_RUN: Duration = Duration::from_secs(100);
 
 fn assert_sane_instruments(infos: &[InstrumentInfo]) {
     assert!(!infos.is_empty());
@@ -398,4 +399,30 @@ async fn edgex_live_streams_decode_cleanly() {
         run.trades(5).len(),
         run.trades(6).len()
     );
+}
+
+/// edgeX closes a connection about a minute after the client's last pong; `edgex_keepalive` keeps it.
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+#[ignore = "streams from the live edgeX venue for 100 seconds"]
+async fn edgex_keepalive_outlives_the_pong_window() {
+    let edgex = || PerpDexClients::Edgex(EdgexCli::default());
+    let cases = vec![
+        Case::new(1, edgex(), WsChannel::Trades(None), NVDA, "").with_keepalive(edgex_keepalive()),
+        Case::new(2, edgex(), bbo(), "", "").with_keepalive(edgex_keepalive()),
+        Case::new(3, edgex(), WsChannel::Trades(None), NVDA, ""),
+    ];
+
+    let run = live(cases, PONG_WINDOW_RUN).await;
+    eprintln!("{}", run.summary());
+    eprintln!(
+        "without keepalive the NVDA trades task connected {} times",
+        run.connects.get(&3).copied().unwrap_or_default()
+    );
+
+    assert_clean(&run);
+    assert_eq!(run.connects.get(&1), Some(&1), "{:?}", run.connects);
+    assert_eq!(run.connects.get(&2), Some(&1), "{:?}", run.connects);
+    let bbo = run.lobs(2);
+    let span = bbo.last().unwrap().timestamp - bbo[0].timestamp;
+    assert!(span > 85_000_000, "BBO stopped after {span} us");
 }

@@ -119,9 +119,9 @@ A `timestamp` of 0 means the venue sent no exchange time (Arcus and edgeX deltas
 
 ## Keepalive
 
-Infra only pings after ten silent seconds, but Lighter (2 min), Pacifica (60 s) and ApeX (150 s after the last `pong`) drop a connection without a recent client frame, however busy it is.
+Infra only pings after ten silent seconds, but Lighter (2 min), Pacifica (60 s), ApeX (150 s after the last `pong`) and edgeX (about 60 s after the last `pong`) drop a connection without a recent client frame, however busy it is.
 
-Keep a `WsKeepalive` per such task, from `lighter_keepalive()`, `pacifica_keepalive()` or `apex_keepalive()`, and call it from the task's `on_lob` / `on_trade`:
+Keep a `WsKeepalive` per such task, from `lighter_keepalive()`, `pacifica_keepalive()`, `apex_keepalive()` or `edgex_keepalive()`, and call it from the task's `on_lob` / `on_trade`:
 
 ```rust
 if let Some(handle) = self.find_ws_handle(&channel, msg.task_id) {
@@ -129,7 +129,7 @@ if let Some(handle) = self.find_ws_handle(&channel, msg.task_id) {
 }
 ```
 
-It sends at most every 30 s and only while frames arrive, so no frame is queued ahead of infra's reconnect `WsConnect`.
+It sends at most once per interval (30 s; 20 s for edgeX) and only while frames arrive, so no frame is queued ahead of infra's reconnect `WsConnect`.
 
 ---
 

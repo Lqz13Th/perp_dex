@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use extrema_infra::prelude::Market;
 
 pub const EDGEX_MARKET_ID: u16 = 7;
@@ -11,6 +13,8 @@ pub const EDGEX_DEPTH: &str = "/api/v2/public/quote/getDepth";
 pub const EDGEX_WS: &str = "wss://edgex-quote-prod-v2.edgex.exchange/api/v1/public/ws";
 /// Every market's BBO once a second; the per-market `bookTicker.{id}` only sends its snapshot.
 pub const EDGEX_WS_BBO_ALL: &str = "bookTicker.all.1s";
+/// edgeX closes a connection ("session is inactive") about a minute after the client's last `pong`.
+pub const EDGEX_WS_PONG_INTERVAL: Duration = Duration::from_secs(20);
 
 /// The only book depths edgeX serves, over REST and websocket alike.
 pub const EDGEX_BOOK_LEVELS: [u16; 2] = [15, 200];
