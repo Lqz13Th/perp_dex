@@ -10,6 +10,15 @@ pub fn edgex_contract_to_cli(contract_id: u64) -> String {
     format!("@{contract_id}")
 }
 
+/// `{"type":"pong"}` carrying the client time; edgeX takes it as the reply to its pings.
+pub fn ws_pong_msg_edgex(now_ms: u64) -> String {
+    json!({
+        "type": "pong",
+        "time": now_ms.to_string(),
+    })
+    .to_string()
+}
+
 pub fn cli_to_edgex_contract_id(inst: &str) -> InfraResult<u64> {
     inst.strip_prefix('@')
         .filter(|id| !id.starts_with('+'))
@@ -86,6 +95,14 @@ mod tests {
     use serde_json::Value;
 
     use super::*;
+
+    #[test]
+    fn pong_carries_the_client_time() {
+        assert_eq!(
+            serde_json::from_str::<Value>(&ws_pong_msg_edgex(1790585693937)).unwrap(),
+            json!({"type":"pong","time":"1790585693937"})
+        );
+    }
 
     #[test]
     fn contract_ids_round_trip_through_cli_names() {

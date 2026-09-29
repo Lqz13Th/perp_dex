@@ -254,7 +254,7 @@ async fn venues(symbol: &str) -> InfraResult<Vec<Venue>> {
             "edgex",
             edgex.clone(),
             find_inst(&edgex, by_code(format!("{symbol}USDC"))).await?,
-            None,
+            Some(edgex_keepalive()),
         ),
         (
             "nado",

@@ -50,7 +50,7 @@ pub use super::edgex::{
     api_utils::*,
     config_assets::{EDGEX, EDGEX_MARKET_ID},
     edgex_cli::EdgexCli,
-    edgex_ws::EdgexWs,
+    edgex_ws::{EdgexWs, edgex_keepalive},
 };
 
 #[cfg(feature = "nado")]

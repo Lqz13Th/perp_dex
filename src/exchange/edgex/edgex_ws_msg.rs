@@ -54,7 +54,8 @@ pub enum EdgexWsEvent {
     Unsubscribed {
         channel: String,
     },
-    /// Sent every 10 s; the server keeps the connection without the `pong` it asks for.
+    /// Sent every 10 s; without a `pong` the server closes the connection about a
+    /// minute later (see `edgex_keepalive`).
     Ping,
     Error {
         #[serde(default)]

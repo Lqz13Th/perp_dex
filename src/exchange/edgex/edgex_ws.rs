@@ -1,9 +1,13 @@
-use extrema_infra::prelude::{
-    LobParam, LobWsDecoder, TaskEvent, WsChannel, WsFrameRunner, decode_raw_ws,
+use extrema_infra::{
+    arch::market_assets::api_general::get_mills_timestamp,
+    prelude::{LobParam, LobWsDecoder, TaskEvent, WsChannel, WsFrameRunner, decode_raw_ws},
 };
 
+use crate::exchange::ws_keepalive::WsKeepalive;
+
 use super::{
-    config_assets::EDGEX_MARKET_ID,
+    api_utils::ws_pong_msg_edgex,
+    config_assets::{EDGEX_MARKET_ID, EDGEX_WS_PONG_INTERVAL},
     edgex_ws_msg::EdgexWsData,
     schemas::ws::{
         lob::{WsBookTickerEdgex, WsDepthEdgex},
@@ -44,5 +48,29 @@ impl LobWsDecoder for EdgexWs {
             },
             _ => {},
         }
+    }
+}
+
+/// edgeX pings every 10 s and closes a connection about a minute after the
+/// client's last `pong`, however busy the stream; a client `ping` does not count.
+/// Its pings reach `on_lob` / `on_trade` as empty batches, so quiet streams still
+/// call [`WsKeepalive::on_frame`].
+pub fn edgex_keepalive() -> WsKeepalive {
+    WsKeepalive::new(
+        || ws_pong_msg_edgex(get_mills_timestamp()),
+        EDGEX_WS_PONG_INTERVAL,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::time::{Duration, Instant};
+
+    use super::*;
+
+    #[test]
+    fn pong_interval_is_well_inside_the_pong_window() {
+        assert!(EDGEX_WS_PONG_INTERVAL <= Duration::from_secs(30));
+        assert!(edgex_keepalive().due(Instant::now()));
     }
 }

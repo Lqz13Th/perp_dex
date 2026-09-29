@@ -65,6 +65,10 @@ all-features = true
 name = "stock_bbo"
 required-features = ["all"]
 
+[[example]]
+name = "bbo_recorder"
+required-features = ["all"]
+
 [[test]]
 name = "ws_replay"
 required-features = ["all"]
