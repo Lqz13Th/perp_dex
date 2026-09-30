@@ -24,8 +24,7 @@ use perp_dex::prelude::*;
 use tokio::sync::oneshot;
 use tracing::{Level, warn};
 
-const DEFAULT_SYMBOLS: &str =
-    "NVDA,TSLA,AAPL,MSFT,GOOGL,AMZN,META,AMD,MU,SNDK,HOOD,COIN,CRCL,MSTR,PLTR,INTC,ORCL";
+const DEFAULT_SYMBOLS: &str = "NVDA,TSLA,AAPL,MSFT,GOOGL,AMZN,META,AMD,MU,SNDK,HOOD,COIN,CRCL,MSTR,PLTR,INTC,ORCL,NBIS,DRAM,EWY";
 const FLUSH_TICK: u64 = 100_000;
 
 type Writer = Arc<Mutex<BufWriter<File>>>;
@@ -247,6 +246,13 @@ impl EventHandler for BboRecorder {
     }
 }
 
+fn listed(info: &InstrumentInfo) -> bool {
+    !matches!(
+        info.state,
+        InstrumentStatus::Closed | InstrumentStatus::Delisting
+    )
+}
+
 async fn instruments(cli: &PerpDexClients) -> Vec<InstrumentInfo> {
     match cli.get_instrument_info(InstrumentType::Perpetual).await {
         Ok(list) => list,
@@ -257,15 +263,21 @@ async fn instruments(cli: &PerpDexClients) -> Vec<InstrumentInfo> {
     }
 }
 
+async fn builder_dex(dex: &str) -> InfraResult<PerpDexClients> {
+    let mut cli = HyperliquidCli::default();
+    cli.set_perp_dex(Some(dex.into()));
+    cli.init_inst_index_map().await?;
+    Ok(PerpDexClients::Hyperliquid(cli))
+}
+
 async fn venue_tasks(symbols: &[String]) -> InfraResult<Vec<VenueTask>> {
-    let mut xyz = HyperliquidCli::default();
-    xyz.set_perp_dex(Some("xyz".into()));
-    xyz.init_inst_index_map().await?;
     let mut rh = LighterCli::default();
     rh.set_venue(LighterVenue::Robinhood);
 
     let venues: Vec<(&'static str, PerpDexClients, Option<WsKeepalive>)> = vec![
-        ("hl_xyz", PerpDexClients::Hyperliquid(xyz), None),
+        ("hl_xyz", builder_dex("xyz").await?, None),
+        ("hl_io", builder_dex("io").await?, None),
+        ("hl_mkts", builder_dex("mkts").await?, None),
         (
             "lighter",
             PerpDexClients::Lighter(LighterCli::default()),
@@ -303,8 +315,8 @@ async fn venue_tasks(symbols: &[String]) -> InfraResult<Vec<VenueTask>> {
         let code = |i: &InstrumentInfo, want: &str| i.inst_code.as_deref() == Some(want);
         let mut found = HashMap::new();
         for symbol in symbols {
-            let hit = list.iter().find(|i| match label {
-                "hl_xyz" => i.inst == format!("{symbol}_USDC_PERP"),
+            let hit = list.iter().filter(|i| listed(i)).find(|i| match label {
+                "hl_xyz" | "hl_io" | "hl_mkts" => i.inst == format!("{symbol}_USDC_PERP"),
                 "lighter" | "lighter_rh" => code(i, symbol),
                 "aster" | "grvt" => i.inst == format!("{symbol}_USDT_PERP"),
                 "arcus" => i.inst == format!("{symbol}_USD_PERP"),
@@ -360,6 +372,7 @@ async fn main() -> InfraResult<()> {
     let mut args = std::env::args().skip(1);
     let symbols: Vec<String> = args
         .next()
+        .filter(|s| !s.is_empty())
         .unwrap_or_else(|| DEFAULT_SYMBOLS.into())
         .split(',')
         .map(|s| s.trim().to_uppercase())

@@ -4,7 +4,7 @@ Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_i
 
 - Each venue plugs into infra as an external venue: a `LobWsDecoder` on `Market::Custom(id)` and a client implementing `LobPublicRest` and `LobWebsocket`, laid out like infra's native exchanges.
 
-- `PerpDexClients` dispatches over every client and infra's `HyperliquidCli`, so one enum covers Hyperliquid builder DEXes (xyz, ...) and the venues here.
+- `PerpDexClients` dispatches over every client and infra's `HyperliquidCli`, so one enum covers Hyperliquid builder DEXes (xyz, EntropyIO's io, Kinetiq's mkts, ...) and the venues here.
 
 Public market data only; no signing or order entry yet.
 
@@ -35,7 +35,7 @@ Public market data only; no signing or order entry yet.
 
 ```toml
 [dependencies]
-extrema_infra = { version = "0.5.2", features = ["hyperliquid"] }
+extrema_infra = { version = "0.5.3", features = ["hyperliquid"] }
 perp_dex = "0.1"
 ```
 
