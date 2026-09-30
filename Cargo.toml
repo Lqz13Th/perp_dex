@@ -1,6 +1,6 @@
 [package]
 name = "perp_dex"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 
 readme = "README.md"
@@ -20,7 +20,7 @@ documentation = "https://docs.rs/perp_dex"
 description = "Stock-perp DEX venues for extrema_infra."
 
 [dependencies]
-extrema_infra = { version = "0.5.2", features = ["hyperliquid"] }
+extrema_infra = { version = "0.5.3", features = ["hyperliquid"] }
 futures-util = { version = "0.3.34", optional = true }
 reqwest = { version = "0.13.5", features = ["json", "gzip"] }
 serde = { version = "1.0.229", features = ["derive"] }

@@ -192,10 +192,17 @@ fn by_code(code: String) -> impl Fn(&InstrumentInfo) -> bool {
     move |i| i.inst_code.as_deref() == Some(code.as_str())
 }
 
+async fn builder_dex(dex: &str) -> InfraResult<PerpDexClients> {
+    let mut cli = HyperliquidCli::default();
+    cli.set_perp_dex(Some(dex.into()));
+    cli.init_inst_index_map().await?;
+    Ok(PerpDexClients::Hyperliquid(cli))
+}
+
 async fn venues(symbol: &str) -> InfraResult<Vec<Venue>> {
-    let mut xyz = HyperliquidCli::default();
-    xyz.set_perp_dex(Some("xyz".into()));
-    xyz.init_inst_index_map().await?;
+    let xyz = builder_dex("xyz").await?;
+    let io = builder_dex("io").await?;
+    let mkts = builder_dex("mkts").await?;
     let lighter = PerpDexClients::Lighter(LighterCli::default());
     let mut rh = LighterCli::default();
     rh.set_venue(LighterVenue::Robinhood);
@@ -205,13 +212,26 @@ async fn venues(symbol: &str) -> InfraResult<Vec<Venue>> {
     let edgex = PerpDexClients::Edgex(EdgexCli::default());
     let nado = PerpDexClients::Nado(NadoCli::default());
 
+    let hl_inst = format!("{symbol}_USDC_PERP");
     let grvt_inst = format!("{symbol}_USDT_PERP");
     let extended_prefix = format!("{symbol}_");
     let candidates = vec![
         (
             "hl_xyz",
-            PerpDexClients::Hyperliquid(xyz),
-            Some(format!("{symbol}_USDC_PERP")),
+            xyz.clone(),
+            find_inst(&xyz, |i| i.inst == hl_inst).await?,
+            None,
+        ),
+        (
+            "hl_io",
+            io.clone(),
+            find_inst(&io, |i| i.inst == hl_inst).await?,
+            None,
+        ),
+        (
+            "hl_mkts",
+            mkts.clone(),
+            find_inst(&mkts, |i| i.inst == hl_inst).await?,
             None,
         ),
         (

@@ -16,6 +16,9 @@ async fn live_streams_decode_cleanly() {
     let mut xyz = HyperliquidCli::default();
     xyz.set_perp_dex(Some("xyz".into()));
     xyz.init_inst_index_map().await.unwrap();
+    let mut io = HyperliquidCli::default();
+    io.set_perp_dex(Some("io".into()));
+    io.init_inst_index_map().await.unwrap();
 
     let lighter = PerpDexClients::Lighter(LighterCli::default());
     let aster = PerpDexClients::Aster(AsterCli::default());
@@ -77,6 +80,13 @@ async fn live_streams_decode_cleanly() {
         ),
         Case::new(13, lighter_rh.clone(), WsChannel::Lob(None), "@15", ""),
         Case::new(14, lighter_rh, bbo(), "@15", ""),
+        Case::new(
+            15,
+            PerpDexClients::Hyperliquid(io),
+            bbo(),
+            "SNDK_USDC_PERP",
+            "",
+        ),
     ];
 
     let run = live(cases, RUN_FOR).await;
@@ -88,7 +98,7 @@ async fn live_streams_decode_cleanly() {
         "reconnected: {:?}",
         run.connects
     );
-    for id in [1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14] {
+    for id in [1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15] {
         assert!(!run.lobs(id).is_empty(), "no book events on task {id}");
     }
 
@@ -102,6 +112,14 @@ async fn live_streams_decode_cleanly() {
         run.lobs(6)
             .iter()
             .all(|l| matches!(l.event, LobEventKind::Snapshot) && l.bids.len() <= 5)
+    );
+
+    assert!(
+        run.lobs(15)
+            .iter()
+            .all(|l| l.market == Market::HyperLiquid && l.inst == "SNDK_USDC_PERP"),
+        "io:SNDK came back as {:?}",
+        run.lobs(15).first().map(|l| &l.inst)
     );
 
     let arcus_book = run.lobs(8);
