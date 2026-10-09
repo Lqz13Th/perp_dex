@@ -208,11 +208,19 @@ impl Default for LighterNonce {
 
 impl LighterNonce {
     pub(crate) fn take(&self, n: i64) -> Option<i64> {
-        self.0
-            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |v| {
-                (v >= 0).then_some(v + n)
-            })
-            .ok()
+        let mut v = self.0.load(Ordering::Acquire);
+        loop {
+            if v < 0 {
+                return None;
+            }
+            match self
+                .0
+                .compare_exchange_weak(v, v + n, Ordering::AcqRel, Ordering::Acquire)
+            {
+                Ok(_) => return Some(v),
+                Err(current) => v = current,
+            }
+        }
     }
 
     /// Takes `n` nonces from `fresh` unless another caller seeded the counter first.
