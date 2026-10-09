@@ -21,6 +21,22 @@ pub const LIGHTER_WS_PING_INTERVAL: Duration = Duration::from_secs(30);
 
 pub const LIGHTER_ORDER_BOOK_ORDERS_LIMIT: usize = 250;
 
+pub const LIGHTER_ACCOUNT: &str = "/api/v1/account";
+pub const LIGHTER_ACCOUNT_ACTIVE_ORDERS: &str = "/api/v1/accountActiveOrders";
+pub const LIGHTER_API_KEYS: &str = "/api/v1/apikeys";
+pub const LIGHTER_NEXT_NONCE: &str = "/api/v1/nextNonce";
+pub const LIGHTER_SEND_TX: &str = "/api/v1/sendTx";
+pub const LIGHTER_SEND_TX_BATCH: &str = "/api/v1/sendTxBatch";
+
+pub const LIGHTER_CHAIN_ID: u32 = 304;
+pub const LIGHTER_RH_CHAIN_ID: u32 = 466324;
+/// Transactions are valid for this long after signing (lighter-go's default, 10 min minus a second).
+pub const LIGHTER_TX_TTL_MS: i64 = 599_000;
+/// Expiry of resting (GTT / post-only) orders.
+pub const LIGHTER_ORDER_TTL_MS: i64 = 28 * 24 * 3_600_000;
+pub const LIGHTER_AUTH_TOKEN_TTL_S: u64 = 600;
+pub const LIGHTER_SEND_TX_BATCH_MAX: usize = 50;
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
 pub enum LighterVenue {
     #[default]
@@ -40,6 +56,13 @@ impl LighterVenue {
         match self {
             LighterVenue::Mainnet => LIGHTER_BASE_URL,
             LighterVenue::Robinhood => LIGHTER_RH_BASE_URL,
+        }
+    }
+
+    pub fn chain_id(self) -> u32 {
+        match self {
+            LighterVenue::Mainnet => LIGHTER_CHAIN_ID,
+            LighterVenue::Robinhood => LIGHTER_RH_CHAIN_ID,
         }
     }
 

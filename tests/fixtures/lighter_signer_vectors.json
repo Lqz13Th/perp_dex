@@ -1,0 +1,80 @@
+{
+  "private_key": "5540f0602557ae03c78cd0d27575f7e890803ad027786e060b92b3979323677c9e95dd2b02456f5d",
+  "public_key": "432a397ad54b5a3ef0d8649765f096d6c6929e1495136e294d5bf37a98ee5718db58a37196aaee72",
+  "chain_id": 304,
+  "txs": [
+    {
+      "name": "limit_post_only_buy",
+      "tx_type": 14,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"ClientOrderIndex\":1791518274,\"BaseAmount\":72,\"Price\":155296,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":2,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1794110274000,\"ExpiredAt\":1791520000000,\"Nonce\":7,\"Sig\":\"DqSRTOXQmQm296OPdJpPKnVd7+JAPCumPaGnZg+ExHlwNgHuZ6NEFLaxevAWkGAgssmd0RWJEzQQmdu36YEJ+TmsehJfnR9LaKrF6ZspCEc=\",\"L2TxAttributes\":null}",
+      "hash": "47d688dd0870387d08ea31b891e7d0fade750f5855cad745c7289993f5686a2fdbfb35fc0e5fcb76",
+      "signature": "DqSRTOXQmQm296OPdJpPKnVd7+JAPCumPaGnZg+ExHlwNgHuZ6NEFLaxevAWkGAgssmd0RWJEzQQmdu36YEJ+TmsehJfnR9LaKrF6ZspCEc="
+    },
+    {
+      "name": "limit_gtt_sell",
+      "tx_type": 14,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"ClientOrderIndex\":42,\"BaseAmount\":35,\"Price\":170000,\"IsAsk\":1,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1794110274000,\"ExpiredAt\":1791520000000,\"Nonce\":8,\"Sig\":\"3e7UM4BaGRKHPTFVle2FzWmf6413ar5q274tfVHXV+pgejCfbS3GQPBDhWsMepFw3ONlLd/6GFVwaGVC1RyCkeocuwX107z0eD2xBEjFjD0=\",\"L2TxAttributes\":null}",
+      "hash": "d37188175430abad54b4b33644a8b548dcbb50b6fda590040aa707e8116b981e8b413bdc0b452c37",
+      "signature": "3e7UM4BaGRKHPTFVle2FzWmf6413ar5q274tfVHXV+pgejCfbS3GQPBDhWsMepFw3ONlLd/6GFVwaGVC1RyCkeocuwX107z0eD2xBEjFjD0="
+    },
+    {
+      "name": "ioc_buy",
+      "tx_type": 14,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":3,\"ClientOrderIndex\":281474976710655,\"BaseAmount\":123456,\"Price\":4294967295,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1791520000000,\"Nonce\":9,\"Sig\":\"AAWEgS0EtTDWYNbsH0J/fQOOYh2nJv1jJr5jWR6b8sVOOewFuhmJORmW9BqVwI53QCVYiXOtXbXsl0OJp0jK401cAX4Rzea9m6deq6IqCio=\",\"L2TxAttributes\":null}",
+      "hash": "ecbaa55e5a5422a1e3bd645a48527aa61f10f66fa5e67bc975ba5ad5c1cfc972c290fbed3f8ba8bd",
+      "signature": "AAWEgS0EtTDWYNbsH0J/fQOOYh2nJv1jJr5jWR6b8sVOOewFuhmJORmW9BqVwI53QCVYiXOtXbXsl0OJp0jK401cAX4Rzea9m6deq6IqCio="
+    },
+    {
+      "name": "ioc_reduce_only_sell",
+      "tx_type": 14,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":0,\"ClientOrderIndex\":0,\"BaseAmount\":1,\"Price\":1,\"IsAsk\":1,\"Type\":0,\"TimeInForce\":0,\"ReduceOnly\":1,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1791520000000,\"Nonce\":10,\"Sig\":\"EUInh/3T4gz2Ij5E2AJpXvUtXVtPpLs7QxCWeb3PuVeqynexwd38E4Ga7/UKwAbjRWHktYBILMod1rr203vQmtQSr40Cy5RqK+JHiHLWMw0=\",\"L2TxAttributes\":null}",
+      "hash": "5214c99974327d5be61c3f0768e67fe89fd97086b21882851a97e4c95d0499a9a2e8b953ee133624",
+      "signature": "EUInh/3T4gz2Ij5E2AJpXvUtXVtPpLs7QxCWeb3PuVeqynexwd38E4Ga7/UKwAbjRWHktYBILMod1rr203vQmtQSr40Cy5RqK+JHiHLWMw0="
+    },
+    {
+      "name": "cancel_by_order_index",
+      "tx_type": 15,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"Index\":39687971468506323,\"ExpiredAt\":1791520000000,\"Nonce\":11,\"Sig\":\"n58NBizISfIiUW6NBNR9508DTLPnM2hSbKL/pVX25HgzGjjWKSIRSeZT0850x3zaztkgwhj3GR+KXzZrkbtXYM8UuMnfSH+cQW04ZhSteDQ=\",\"L2TxAttributes\":null}",
+      "hash": "03d1b3ee6c074212d29bc9ecf903913d0bd2f98e2dadb63dee61c696062986c13d0c3c2b277255e5",
+      "signature": "n58NBizISfIiUW6NBNR9508DTLPnM2hSbKL/pVX25HgzGjjWKSIRSeZT0850x3zaztkgwhj3GR+KXzZrkbtXYM8UuMnfSH+cQW04ZhSteDQ="
+    },
+    {
+      "name": "cancel_by_client_index",
+      "tx_type": 15,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"Index\":1791518274,\"ExpiredAt\":1791520000000,\"Nonce\":12,\"Sig\":\"kGrjaSxN+oRAHGFvyWnTdj9OYx2fZDcqcO5QS8PJcdm+/uOW1bVZdot0X2yOxdBl7T6wxLGrKk/bao7YbNvXni46GPoihfoTlsPZcEUWXCM=\",\"L2TxAttributes\":null}",
+      "hash": "8163ee7151d502a4057ebd42bfab936fa3d686969ad884965808fed71710216a6d3017742350bc61",
+      "signature": "kGrjaSxN+oRAHGFvyWnTdj9OYx2fZDcqcO5QS8PJcdm+/uOW1bVZdot0X2yOxdBl7T6wxLGrKk/bao7YbNvXni46GPoihfoTlsPZcEUWXCM="
+    },
+    {
+      "name": "update_leverage_isolated_5x",
+      "tx_type": 20,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"InitialMarginFraction\":2000,\"MarginMode\":1,\"ExpiredAt\":1791520000000,\"Nonce\":13,\"Sig\":\"Hqn1dL0XKqjklR4MiWUEVwb6BaeNmzBvZuJylXbbgxutrF8ZTi09TXb6f6IZeiGNzYJ8Sxv/LrgmNfeFC3+i/T1u7hjouCL/aads24yUoVw=\",\"L2TxAttributes\":null}",
+      "hash": "256b57b733fd88976fe24055aa3eb9cc7932fe6485867b1f4c6c191fa3ca8115548b3dcbd3af540e",
+      "signature": "Hqn1dL0XKqjklR4MiWUEVwb6BaeNmzBvZuJylXbbgxutrF8ZTi09TXb6f6IZeiGNzYJ8Sxv/LrgmNfeFC3+i/T1u7hjouCL/aads24yUoVw="
+    },
+    {
+      "name": "update_margin_add",
+      "tx_type": 29,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"USDCAmount\":5000000,\"Direction\":1,\"ExpiredAt\":1791520000000,\"Nonce\":14,\"Sig\":\"/lDApjQ7NOmrKMYMc9wL2/JeS892b1Ykrbhw3yKdzR942QLM1LXhUpoF/pPtE2MbPsjw7tYvMf1E1t95LugVHDcEUGfh57JeIMAiUoSWDks=\",\"L2TxAttributes\":null}",
+      "hash": "5bd16f3a0ca9b6bb8a583569b6ef53ac5badf16d8c220777b5527699cbe6c8aef2f3dc8007e7b445",
+      "signature": "/lDApjQ7NOmrKMYMc9wL2/JeS892b1Ykrbhw3yKdzR942QLM1LXhUpoF/pPtE2MbPsjw7tYvMf1E1t95LugVHDcEUGfh57JeIMAiUoSWDks="
+    },
+    {
+      "name": "update_margin_large",
+      "tx_type": 29,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":2,\"USDCAmount\":9000000000123,\"Direction\":0,\"ExpiredAt\":1791520000000,\"Nonce\":15,\"Sig\":\"YEB4tU2V1dC19DS7LRLGYdziBJvN5A0ZqSfh6yHY63VYuZ89+GxnJHu2LY0mmcX38BCL/JutY1uVpGfAe/EZDPUebY2GfhXnfIGOIXQqJSI=\",\"L2TxAttributes\":null}",
+      "hash": "501cca99b1a30c7d2bb637ec83eb26b15648962d47968cad32517c496f3f5f0403e71f1b438e411d",
+      "signature": "YEB4tU2V1dC19DS7LRLGYdziBJvN5A0ZqSfh6yHY63VYuZ89+GxnJHu2LY0mmcX38BCL/JutY1uVpGfAe/EZDPUebY2GfhXnfIGOIXQqJSI="
+    },
+    {
+      "name": "cancel_all_immediate",
+      "tx_type": 16,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1791520000000,\"Nonce\":16,\"Sig\":\"MyJqDdXc/do0xEGHdzxR+oCtDt21KK+LYGTHtoG+EOAH/O4s6rr9eJBNoTjlQbQASCGW/4MpV55a9WUWrLcEL7GJcwSm5o6nBGLjvssYVUw=\",\"L2TxAttributes\":null}",
+      "hash": "9da2e4f99f127a83910442216dbbffc78aaea3714c3fb1412a24126692be8059c9fbe72ec13c01de",
+      "signature": "MyJqDdXc/do0xEGHdzxR+oCtDt21KK+LYGTHtoG+EOAH/O4s6rr9eJBNoTjlQbQASCGW/4MpV55a9WUWrLcEL7GJcwSm5o6nBGLjvssYVUw="
+    }
+  ],
+  "auth_message": "1791520000:758666:4",
+  "auth_hash": "fd03a3644a9b17046814cc6e1fef6abd8b79aa0c962535753d9d1b08ef0b2d78bdb3cee5676175c7",
+  "auth_token": "1791520000:758666:4:71445b08343e691e64625ec0f14d5cc85c93114d9c655118ab566aa109a7aa258cf624371bbc4b6e53fe714cb246af14c0abded2d443fb73400e21cc87ae4c3f966687da02950095478688d6e6ddad69"
+}
