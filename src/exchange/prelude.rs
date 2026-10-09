@@ -11,6 +11,7 @@ pub use super::aster::{
 #[cfg(feature = "lighter")]
 pub use super::lighter::{
     api_utils::*,
+    auth::{LighterAuth, LighterPrivateKey, read_lighter_env_auth},
     config_assets::{
         LIGHTER, LIGHTER_MARKET_ID, LIGHTER_RH, LIGHTER_RH_MARKET_ID, LIGHTER_WS_PING,
         LIGHTER_WS_PING_INTERVAL, LighterVenue,

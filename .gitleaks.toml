@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Lighter signer golden vectors: the key is derived from a public test seed, not a credential"
+paths = ['''^tests/fixtures/lighter_signer_vectors\.json$''']

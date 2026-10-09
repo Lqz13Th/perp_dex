@@ -1,4 +1,5 @@
 pub mod api_utils;
+pub mod auth;
 pub mod config_assets;
 pub mod lighter_cli;
 pub mod lighter_ws;

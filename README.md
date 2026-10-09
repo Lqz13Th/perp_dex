@@ -6,7 +6,7 @@ Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_i
 
 - `PerpDexClients` dispatches over every client and infra's `HyperliquidCli`, so one enum covers Hyperliquid builder DEXes (xyz, EntropyIO's io, Kinetiq's mkts, ...) and the venues here.
 
-Public market data only; no signing or order entry yet.
+Public market data for every venue; Lighter also has the private API (see [Lighter Private API](#lighter-private-api)).
 
 ---
 
@@ -139,6 +139,48 @@ Every Extended stream is its own URL with no subscribe message, and the venue re
 
 ---
 
+## Lighter Private API
+
+`LighterCli` implements infra's `LobPrivateRest` once it has credentials and market scales:
+
+- Credentials: `init_api_key()`, which reads `LIGHTER_ACCOUNT_INDEX`, `LIGHTER_API_KEY_INDEX` and `LIGHTER_API_PRIVATE_KEY` from the environment, or `set_auth(LighterAuth::new(..))`.
+- Market scales: `init_market_scales()`, the size and price decimals of every market, loaded once like infra's `init_inst_index_map`.
+
+| | Hyperliquid (infra) | Lighter |
+|---|---|---|
+| Identity | owner address | account index plus API key index (0–254) |
+| Trading key | secp256k1 agent key, 32 bytes | API key, 40 bytes (80 hex), on the ECgFp5 curve |
+| Signature | EIP-712 ECDSA | Schnorr over ECgFp5, Poseidon2 hash (Goldilocks) |
+| Nonce | ms timestamp | per API key, strictly +1 |
+| Amounts | decimal strings | integers scaled by the market's size and price decimals |
+| Private reads | no auth | signed auth token in the `authorization` header |
+
+**Signing.** Signing is pure Rust, built on `goldilocks-crypto` and `poseidon-hash`, ports of lighter-go pinned to exact versions. `tests/fixtures/lighter_signer_vectors.json` was generated with the official Go signer (its source is next to it). Against those vectors the tests check:
+
+- every transaction hash and `tx_info` byte for byte;
+- the public key derivation;
+- the auth token hash;
+- the official signatures, which our verifier accepts.
+
+Schnorr nonces are random, so the signatures themselves differ from run to run. Our signatures pass the official verifier.
+
+**Orders.**
+
+- `OrderParams.size` and `price` are decimal strings that must fit the market's decimals exactly.
+- Every order carries a price; for `Market` it is the worst acceptable price.
+- `PostOnly` and `Limit` orders rest for 28 days. `Ioc` and `Market` orders carry no expiry.
+- Client order ids are integers below 2^48.
+
+**Acks.** `sendTx` only reports that the sequencer accepted the transaction. Acks are `Live` (or `Canceled` for cancels) with the transaction hash in `msg`. The exchange `order_index` and fills come from `get_open_orders`.
+
+**Lighter-only calls.** `update_leverage`, `update_margin`, `cancel_all_orders`, `next_nonce`, `auth_token`, `check_api_key`.
+
+**Nonces.** The nonce is read once from the exchange and counted locally in an atomic shared by clones. It is re-read after any failed send. Auth tokens are signed per call; there are no locks.
+
+**Example.** `cargo run --example lighter_private --features lighter -- @139 orders` checks the key and reads balance and positions. It then places post-only bids 5% below the touch and cancels them, singly and in batches.
+
+---
+
 ## REST Notes
 
 - GRVT and edgeX have no bulk ticker: `get_tickers` / `get_mark_prices` with `insts = None` make one request per instrument.
@@ -150,6 +192,7 @@ Every Extended stream is its own URL with no subscribe message, and the venue re
 
 - `cargo test`: unit tests plus the `*_replay` tests, which replay frames captured from the live venues through the infra runtime.
 - `cargo test --tests -- --ignored`: every public REST method and 30 s of streams against the live venues, plus the Pacifica and ApeX keepalive runs.
+- `LIGHTER_DUMP_SIGS=<file> cargo test --lib dump_signatures -- --ignored`: writes signatures made by the Rust signer; check them with the official verifier through `go run ./cmd/golden verify < <file>` (see `tests/fixtures/lighter_signer_vectors.go`).
 
 ---
 
