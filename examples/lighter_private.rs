@@ -1,6 +1,7 @@
 //! Lighter private API round trip on a live account (`LIGHTER_ACCOUNT_INDEX`, `LIGHTER_API_KEY_INDEX`,
-//! `LIGHTER_API_PRIVATE_KEY`): checks the key against the exchange, reads balance and positions, then posts
-//! post-only bids 5% below the touch (they cannot fill) and cancels them one by one and as a batch.
+//! `LIGHTER_API_PRIVATE_KEY`): checks the key against the exchange, reads balance, positions, order history and
+//! fills, then posts post-only bids 5% below the touch (they cannot fill), moves one, and cancels them one by
+//! one and as a batch.
 //!
 //! `cargo run --example lighter_private --features lighter -- @139`            read-only
 //! `cargo run --example lighter_private --features lighter -- @139 orders`     plus the order round trip
@@ -70,6 +71,33 @@ async fn main() -> InfraResult<()> {
             p.inst, p.size, p.avg_price, p.margin, p.leverage
         );
     }
+    for o in cli.get_order_history(&inst, None, None, Some(3)).await? {
+        println!(
+            "history: order_id={} cli={:?} {:?} {} @ {} filled {} {:?}",
+            o.order_id, o.cli_order_id, o.side, o.size, o.price, o.executed_size, o.order_status
+        );
+    }
+    let limits = cli.get_account_limits().await?;
+    println!(
+        "tier {}: maker fee tick {}, taker fee tick {}",
+        limits.user_tier, limits.current_maker_fee_tick, limits.current_taker_fee_tick
+    );
+    for f in cli.get_position_funding(Some(&inst), Some(3)).await? {
+        println!(
+            "funding: {} {} {} rate {} on {}",
+            f.inst(),
+            f.timestamp,
+            f.change,
+            f.rate,
+            f.position_size
+        );
+    }
+    for f in cli.get_fills(Some(&inst), Some(3)).await? {
+        println!(
+            "fill: {:?} {} @ {} maker {} order {}",
+            f.side, f.size, f.price, f.is_maker, f.order_id
+        );
+    }
     show_open(&cli, &inst).await?;
     if !with_orders {
         return Ok(());
@@ -103,11 +131,24 @@ async fn main() -> InfraResult<()> {
         a.order_status, a.cli_order_id, a.msg
     );
     let ids = show_open(&cli, &inst).await?;
+    let lower = fmt(px * 0.99, scale.price_decimals);
+    println!(
+        "   modify to {lower}: tx {}",
+        cli.modify_order(&inst, None, Some(&base.to_string()), &size, &lower)
+            .await?
+    );
+    show_open(&cli, &inst).await?;
     if let Some(id) = ids.first() {
         let c = cli.cancel_order(&inst, Some(id), None).await?;
         println!("   cancel by order id: {:?} tx={:?}", c.order_status, c.msg);
     }
     show_open(&cli, &inst).await?;
+    for o in cli.get_orders_by_client_ids(&[base as i64]).await? {
+        println!(
+            "   by client id: {} {:?} @ {}",
+            o.order_id, o.order_status, o.price
+        );
+    }
 
     println!("\n2. batch of two bids, cancelled as a batch by client id");
     let acks = cli

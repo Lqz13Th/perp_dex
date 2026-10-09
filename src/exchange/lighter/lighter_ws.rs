@@ -8,8 +8,10 @@ use super::{
     config_assets::{
         LIGHTER_MARKET_ID, LIGHTER_RH_MARKET_ID, LIGHTER_WS_PING, LIGHTER_WS_PING_INTERVAL,
     },
-    lighter_ws_msg::LighterWsData,
+    lighter_ws_msg::{LighterWsAccountData, LighterWsData},
     schemas::ws::{
+        account_order::WsAccountOrdersLighter,
+        account_position::WsAccountPositionsLighter,
         lob::{WsOrderBookLighter, WsTickerLighter},
         trades::WsTradeLighter,
     },
@@ -43,6 +45,22 @@ impl LobWsDecoder for LighterRhWs {
 
 async fn lighter_ws_channel<const ID: u16, R: WsFrameRunner>(channel: &WsChannel, runner: R) {
     match channel {
+        WsChannel::AccountOrders => {
+            runner
+                .ws_loop(
+                    TaskEvent::AccOrder,
+                    LighterWsAccountData::<WsAccountOrdersLighter<ID>>::decode,
+                )
+                .await;
+        },
+        WsChannel::AccountPositions => {
+            runner
+                .ws_loop(
+                    TaskEvent::AccPos,
+                    LighterWsAccountData::<WsAccountPositionsLighter<ID>>::decode,
+                )
+                .await;
+        },
         WsChannel::Trades(_) => {
             runner
                 .ws_loop(

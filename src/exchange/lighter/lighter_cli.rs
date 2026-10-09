@@ -1,5 +1,6 @@
 use reqwest::Client;
-use std::{collections::HashMap, sync::Arc};
+use serde::de::DeserializeOwned;
+use std::{collections::HashMap, slice, sync::Arc};
 use tracing::error;
 
 use extrema_infra::{
@@ -26,12 +27,15 @@ use super::{
     lighter_rest_msg::RestResLighter,
     schemas::rest::{
         account::{AccountLighter, RestAccountsLighter},
+        account_limits::RestAccountLimitsLighter,
         api_keys::{ApiKeyLighter, RestApiKeysLighter},
         next_nonce::RestNextNonceLighter,
         open_order::RestOpenOrdersLighter,
         order_book_details::RestOrderBookDetailsLighter,
         order_book_orders::RestOrderBookOrdersLighter,
+        position_funding::{PositionFundingLighter, RestPositionFundingLighter},
         trade_order::{RestSendTxBatchLighter, RestSendTxLighter},
+        trades::{LighterFill, RestTradesLighter},
     },
 };
 
@@ -41,7 +45,10 @@ use super::{
 /// Private notes: `OrderParams.size` / `price` are decimal strings scaled exactly to the market's integer units;
 /// every order needs a price (worst price for `Market`). `sendTx` only says the sequencer accepted a transaction,
 /// so acks are `Live` (`Canceled` for cancels) with the transaction hash in `msg`; fills and the exchange
-/// `order_index` come from `get_open_orders`.
+/// `order_index` come from the `AccountOrders` stream or `get_open_orders`.
+///
+/// Websocket order entry: `sign_orders` / `sign_cancels` / `sign_modify` and a [`LIGHTER_TX_CHANNEL`] task
+/// sending [`lighter_ws_send_tx_msg`] frames; after a rejected or lost transaction call `invalidate_nonce`.
 #[derive(Clone, Debug)]
 pub struct LighterCli {
     pub client: Arc<Client>,
@@ -104,13 +111,8 @@ impl LobPrivateRest for LighterCli {
     }
 
     async fn place_order(&self, order_params: OrderParams) -> InfraResult<OrderAckData> {
-        let nonce = self.reserve_nonces(1).await?;
-        let sent = async {
-            let tx = self.create_order_tx(&order_params, nonce)?;
-            self.send_tx(&tx).await
-        }
-        .await;
-        let sent = self.invalidate_on_err(sent)?;
+        let tx = self.sign_orders(slice::from_ref(&order_params)).await?;
+        let sent = self.invalidate_on_err(self.send_tx(&tx[0]).await)?;
         Ok(ack(
             OrderStatus::Live,
             order_params.client_order_id,
@@ -121,16 +123,8 @@ impl LobPrivateRest for LighterCli {
     async fn place_orders(&self, order_params: Vec<OrderParams>) -> InfraResult<Vec<OrderAckData>> {
         let mut acks = Vec::with_capacity(order_params.len());
         for chunk in order_params.chunks(LIGHTER_SEND_TX_BATCH_MAX) {
-            let start = self.reserve_nonces(chunk.len() as i64).await?;
-            let sent = async {
-                let mut txs = Vec::with_capacity(chunk.len());
-                for (i, p) in chunk.iter().enumerate() {
-                    txs.push(self.create_order_tx(p, start + i as i64)?);
-                }
-                self.send_tx_batch(&txs).await
-            }
-            .await;
-            let sent = self.invalidate_on_err(sent)?;
+            let txs = self.sign_orders(chunk).await?;
+            let sent = self.invalidate_on_err(self.send_tx_batch(&txs).await)?;
             for (p, hash) in chunk.iter().zip(padded(sent.tx_hash, chunk.len())) {
                 acks.push(ack(OrderStatus::Live, p.client_order_id.clone(), hash));
             }
@@ -144,24 +138,15 @@ impl LobPrivateRest for LighterCli {
         order_id: Option<&str>,
         cli_order_id: Option<&str>,
     ) -> InfraResult<OrderAckData> {
-        let (market_index, index) = lighter_cancel_target(inst, order_id, cli_order_id)?;
-        let hash = self
-            .submit(|h| LighterCancelOrderTx {
-                account_index: h.account_index,
-                api_key_index: h.api_key_index,
-                market_index,
-                index,
-                expired_at: h.expired_at,
-                nonce: h.nonce,
-                ..Default::default()
-            })
-            .await?;
-        let mut a = ack(
-            OrderStatus::Canceled,
-            cli_order_id.map(str::to_string),
-            hash,
-        );
-        a.order_id = order_id.unwrap_or_default().to_string();
+        let params = CancelOrderParams {
+            inst: inst.to_string(),
+            order_id: order_id.map(str::to_string),
+            cli_order_id: cli_order_id.map(str::to_string),
+        };
+        let tx = self.sign_cancels(slice::from_ref(&params)).await?;
+        let hash = self.invalidate_on_err(self.send_tx(&tx[0]).await)?.tx_hash;
+        let mut a = ack(OrderStatus::Canceled, params.cli_order_id, hash);
+        a.order_id = params.order_id.unwrap_or_default();
         Ok(a)
     }
 
@@ -171,31 +156,8 @@ impl LobPrivateRest for LighterCli {
     ) -> InfraResult<Vec<OrderAckData>> {
         let mut acks = Vec::with_capacity(cancel_params.len());
         for chunk in cancel_params.chunks(LIGHTER_SEND_TX_BATCH_MAX) {
-            let targets = chunk
-                .iter()
-                .map(|c| {
-                    lighter_cancel_target(&c.inst, c.order_id.as_deref(), c.cli_order_id.as_deref())
-                })
-                .collect::<InfraResult<Vec<_>>>()?;
-            let start = self.reserve_nonces(chunk.len() as i64).await?;
-            let sent = async {
-                let mut txs = Vec::with_capacity(chunk.len());
-                for (i, &(market_index, index)) in targets.iter().enumerate() {
-                    let h = self.tx_header(start + i as i64)?;
-                    txs.push(self.sign(LighterCancelOrderTx {
-                        account_index: h.account_index,
-                        api_key_index: h.api_key_index,
-                        market_index,
-                        index,
-                        expired_at: h.expired_at,
-                        nonce: h.nonce,
-                        ..Default::default()
-                    })?);
-                }
-                self.send_tx_batch(&txs).await
-            }
-            .await;
-            let sent = self.invalidate_on_err(sent)?;
+            let txs = self.sign_cancels(chunk).await?;
+            let sent = self.invalidate_on_err(self.send_tx_batch(&txs).await)?;
             for (c, hash) in chunk.iter().zip(padded(sent.tx_hash, chunk.len())) {
                 let mut a = ack(OrderStatus::Canceled, c.cli_order_id.clone(), hash);
                 a.order_id = c.order_id.clone().unwrap_or_default();
@@ -210,25 +172,18 @@ impl LobPrivateRest for LighterCli {
         inst: &str,
         limit: Option<u32>,
     ) -> InfraResult<Vec<OrderDetailData>> {
-        let market_id = cli_to_lighter_market_id(inst)?;
-        let auth = self.auth_ref()?;
-        let url = format!(
-            "{}{}?account_index={}&market_id={}",
-            self.venue.base_url(),
-            LIGHTER_ACCOUNT_ACTIVE_ORDERS,
-            auth.account_index,
-            market_id
-        );
-        let response = self
-            .client
-            .get(url)
-            .header("authorization", self.auth_token()?)
-            .send()
+        let query = [
+            ("account_index", self.auth_ref()?.account_index.to_string()),
+            ("market_id", cli_to_lighter_market_id(inst)?.to_string()),
+        ];
+        let res: RestOpenOrdersLighter = self
+            .get_private(
+                LIGHTER_ACCOUNT_ACTIVE_ORDERS,
+                &query,
+                "Lighter accountActiveOrders",
+            )
             .await?;
-        let res: RestResLighter<RestOpenOrdersLighter> =
-            parse_json_response("Lighter accountActiveOrders", response).await?;
         let mut orders: Vec<OrderDetailData> = res
-            .into_one()?
             .orders
             .into_iter()
             .map(|o| o.into_order_detail_data())
@@ -263,6 +218,58 @@ impl LobPrivateRest for LighterCli {
             .filter(|p| insts.is_none_or(|list| list.contains(&p.inst)))
             .collect())
     }
+
+    /// Filled, canceled and expired orders of one market, newest first; `limit: None` pages through all of
+    /// them in the window.
+    async fn get_order_history(
+        &self,
+        inst: &str,
+        start_time_us: Option<u64>,
+        end_time_us: Option<u64>,
+        limit: Option<u32>,
+    ) -> InfraResult<Vec<OrderDetailData>> {
+        let mut query = vec![
+            ("account_index", self.auth_ref()?.account_index.to_string()),
+            ("market_id", cli_to_lighter_market_id(inst)?.to_string()),
+        ];
+        if start_time_us.is_some() || end_time_us.is_some() {
+            let start_s = start_time_us.unwrap_or_default() / 1_000_000;
+            let end_s = end_time_us
+                .unwrap_or_else(get_micros_timestamp)
+                .div_ceil(1_000_000);
+            query.push(("between_timestamps", format!("{start_s}-{end_s}")));
+        }
+        let mut orders = Vec::new();
+        if limit == Some(0) {
+            return Ok(orders);
+        }
+        loop {
+            let want = limit.map_or(LIGHTER_HISTORY_PAGE_MAX, |l| {
+                (l - orders.len() as u32).min(LIGHTER_HISTORY_PAGE_MAX)
+            });
+            let mut page_query = query.clone();
+            page_query.push(("limit", want.to_string()));
+            let page: RestOpenOrdersLighter = self
+                .get_private(
+                    LIGHTER_ACCOUNT_INACTIVE_ORDERS,
+                    &page_query,
+                    "Lighter accountInactiveOrders",
+                )
+                .await?;
+            let n = page.orders.len();
+            orders.extend(page.orders.into_iter().map(|o| o.into_order_detail_data()));
+            match page.next_cursor {
+                Some(cursor)
+                    if n as u32 == want && limit.is_none_or(|l| (orders.len() as u32) < l) =>
+                {
+                    query.retain(|(k, _)| *k != "cursor");
+                    query.push(("cursor", cursor));
+                },
+                _ => break,
+            }
+        }
+        Ok(orders)
+    }
 }
 
 impl LobWebsocket for LighterCli {
@@ -274,8 +281,17 @@ impl LobWebsocket for LighterCli {
         self._get_public_sub_msg(channel, insts)
     }
 
+    /// Signs a fresh auth token; the exchange checks it only when subscribing.
+    async fn get_private_sub_msg(&self, channel: &WsChannel) -> InfraResult<String> {
+        self._get_private_sub_msg(channel)
+    }
+
     async fn get_public_connect_msg(&self, channel: &WsChannel) -> InfraResult<String> {
         self._get_public_connect_msg(channel)
+    }
+
+    async fn get_private_connect_msg(&self, channel: &WsChannel) -> InfraResult<String> {
+        self._get_private_connect_msg(channel)
     }
 }
 
@@ -358,14 +374,25 @@ impl LighterCli {
     }
 
     /// Signs and sends one transaction built from a fresh header; returns its hash.
-    async fn submit<T: LighterTx>(&self, build: impl FnOnce(TxHeader) -> T) -> InfraResult<String> {
-        let nonce = self.reserve_nonces(1).await?;
-        let sent = async {
-            let tx = self.sign(build(self.tx_header(nonce)?))?;
-            self.send_tx(&tx).await
-        }
-        .await;
-        Ok(self.invalidate_on_err(sent)?.tx_hash)
+    async fn submit<T: LighterTx>(
+        &self,
+        build: impl Fn(TxHeader) -> InfraResult<T>,
+    ) -> InfraResult<String> {
+        let tx = self.sign_with_nonces(1, |_, h| build(h)).await?;
+        Ok(self.invalidate_on_err(self.send_tx(&tx[0]).await)?.tx_hash)
+    }
+
+    /// Signs `n` transactions on consecutive nonces; a failed signing returns the nonces to the exchange count.
+    async fn sign_with_nonces<T: LighterTx>(
+        &self,
+        n: usize,
+        build: impl Fn(usize, TxHeader) -> InfraResult<T>,
+    ) -> InfraResult<Vec<SignedLighterTx>> {
+        let start = self.reserve_nonces(n as i64).await?;
+        let signed = (0..n)
+            .map(|i| self.sign(build(i, self.tx_header(start + i as i64)?)?))
+            .collect();
+        self.invalidate_on_err(signed)
     }
 
     async fn reserve_nonces(&self, n: i64) -> InfraResult<i64> {
@@ -374,6 +401,191 @@ impl LighterCli {
         }
         let fresh = self.next_nonce().await?;
         Ok(self.nonce.seed_and_take(fresh, n))
+    }
+
+    /// Forgets the local nonce count, so the next signing re-reads it from the exchange. Needed after a
+    /// transaction sent elsewhere (websocket) is rejected or lost: later nonces wait behind the gap.
+    pub fn invalidate_nonce(&self) {
+        self.nonce.invalidate();
+    }
+
+    /// Signed `CreateOrder`s on consecutive nonces, for `send_tx_batch` or the websocket.
+    pub async fn sign_orders(&self, orders: &[OrderParams]) -> InfraResult<Vec<SignedLighterTx>> {
+        let scales = orders
+            .iter()
+            .map(|p| self.market_scale(cli_to_lighter_market_id(&p.inst)?))
+            .collect::<InfraResult<Vec<_>>>()?;
+        let now_ms = get_mills_timestamp() as i64;
+        self.sign_with_nonces(orders.len(), |i, h| {
+            lighter_order_from_params(&orders[i], scales[i], h, now_ms, LIGHTER_ORDER_TTL_MS)
+        })
+        .await
+    }
+
+    /// Signed `CancelOrder`s (by exchange order id, else client order id) on consecutive nonces.
+    pub async fn sign_cancels(
+        &self,
+        cancels: &[CancelOrderParams],
+    ) -> InfraResult<Vec<SignedLighterTx>> {
+        let targets = cancels
+            .iter()
+            .map(|c| {
+                lighter_cancel_target(&c.inst, c.order_id.as_deref(), c.cli_order_id.as_deref())
+            })
+            .collect::<InfraResult<Vec<_>>>()?;
+        self.sign_with_nonces(cancels.len(), |i, h| {
+            let (market_index, index) = targets[i];
+            Ok(LighterCancelOrderTx {
+                account_index: h.account_index,
+                api_key_index: h.api_key_index,
+                market_index,
+                index,
+                expired_at: h.expired_at,
+                nonce: h.nonce,
+                ..Default::default()
+            })
+        })
+        .await
+    }
+
+    /// Signed `ModifyOrder` moving a resting order to `size` at `price`.
+    pub async fn sign_modify(
+        &self,
+        inst: &str,
+        order_id: Option<&str>,
+        cli_order_id: Option<&str>,
+        size: &str,
+        price: &str,
+    ) -> InfraResult<SignedLighterTx> {
+        let scale = self.market_scale(cli_to_lighter_market_id(inst)?)?;
+        let mut tx = self
+            .sign_with_nonces(1, |_, h| {
+                lighter_modify_from_params(inst, order_id, cli_order_id, size, price, scale, h)
+            })
+            .await?;
+        Ok(tx.remove(0))
+    }
+
+    /// Moves a resting order to `size` at `price` in one transaction; returns its hash.
+    pub async fn modify_order(
+        &self,
+        inst: &str,
+        order_id: Option<&str>,
+        cli_order_id: Option<&str>,
+        size: &str,
+        price: &str,
+    ) -> InfraResult<String> {
+        let tx = self
+            .sign_modify(inst, order_id, cli_order_id, size, price)
+            .await?;
+        Ok(self.invalidate_on_err(self.send_tx(&tx).await)?.tx_hash)
+    }
+
+    /// Orders by client order id (active ones, and inactive ones of the last 24 h), any market.
+    pub async fn get_orders_by_client_ids(
+        &self,
+        cli_order_ids: &[i64],
+    ) -> InfraResult<Vec<OrderDetailData>> {
+        let account = self.auth_ref()?.account_index.to_string();
+        let mut orders = Vec::with_capacity(cli_order_ids.len());
+        for chunk in cli_order_ids.chunks(LIGHTER_ACCOUNT_ORDERS_MAX) {
+            let ids = chunk
+                .iter()
+                .map(i64::to_string)
+                .collect::<Vec<_>>()
+                .join(",");
+            let query = [
+                ("account_index", account.clone()),
+                ("client_order_indexes", ids),
+            ];
+            let res: RestOpenOrdersLighter = self
+                .get_private(LIGHTER_ACCOUNT_ORDERS, &query, "Lighter accountOrders")
+                .await?;
+            orders.extend(res.orders.into_iter().map(|o| o.into_order_detail_data()));
+        }
+        Ok(orders)
+    }
+
+    /// Latest fills of the account, newest first, one market or all; at most 100.
+    pub async fn get_fills(
+        &self,
+        inst: Option<&str>,
+        limit: Option<u32>,
+    ) -> InfraResult<Vec<LighterFill>> {
+        let account = self.auth_ref()?.account_index;
+        let mut query = vec![
+            ("account_index", account.to_string()),
+            ("sort_by", "timestamp".to_string()),
+            ("sort_dir", "desc".to_string()),
+            (
+                "limit",
+                limit
+                    .unwrap_or(LIGHTER_HISTORY_PAGE_MAX)
+                    .clamp(1, LIGHTER_HISTORY_PAGE_MAX)
+                    .to_string(),
+            ),
+        ];
+        if let Some(inst) = inst {
+            query.push(("market_id", cli_to_lighter_market_id(inst)?.to_string()));
+        }
+        let res: RestTradesLighter = self
+            .get_private(LIGHTER_TRADES, &query, "Lighter trades")
+            .await?;
+        Ok(res
+            .trades
+            .iter()
+            .filter_map(|t| t.fill_of(account))
+            .collect())
+    }
+
+    /// Tier (`standard` / `premium`) and fee ticks of the account.
+    pub async fn get_account_limits(&self) -> InfraResult<RestAccountLimitsLighter> {
+        let query = [("account_index", self.auth_ref()?.account_index.to_string())];
+        self.get_private(LIGHTER_ACCOUNT_LIMITS, &query, "Lighter accountLimits")
+            .await
+    }
+
+    /// Latest funding payments of the account, newest first, one market or all; at most 100.
+    pub async fn get_position_funding(
+        &self,
+        inst: Option<&str>,
+        limit: Option<u32>,
+    ) -> InfraResult<Vec<PositionFundingLighter>> {
+        let mut query = vec![
+            ("account_index", self.auth_ref()?.account_index.to_string()),
+            (
+                "limit",
+                limit
+                    .unwrap_or(LIGHTER_HISTORY_PAGE_MAX)
+                    .clamp(1, LIGHTER_HISTORY_PAGE_MAX)
+                    .to_string(),
+            ),
+        ];
+        if let Some(inst) = inst {
+            query.push(("market_ids", cli_to_lighter_market_id(inst)?.to_string()));
+        }
+        let res: RestPositionFundingLighter = self
+            .get_private(LIGHTER_POSITION_FUNDING, &query, "Lighter positionFunding")
+            .await?;
+        Ok(res.position_fundings)
+    }
+
+    /// GET with an auth token.
+    async fn get_private<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        query: &[(&str, String)],
+        ctx: &str,
+    ) -> InfraResult<T> {
+        let response = self
+            .client
+            .get(format!("{}{}", self.venue.base_url(), path))
+            .query(query)
+            .header("authorization", self.auth_token()?)
+            .send()
+            .await?;
+        let res: RestResLighter<T> = parse_json_response(ctx, response).await?;
+        res.into_one()
     }
 
     /// Next nonce of the API key according to the exchange.
@@ -496,15 +708,17 @@ impl LighterCli {
             },
         };
         let initial_margin_fraction = (10_000 / leverage) as u16;
-        self.submit(|h| LighterUpdateLeverageTx {
-            account_index: h.account_index,
-            api_key_index: h.api_key_index,
-            market_index,
-            initial_margin_fraction,
-            margin_mode,
-            expired_at: h.expired_at,
-            nonce: h.nonce,
-            ..Default::default()
+        self.submit(|h| {
+            Ok(LighterUpdateLeverageTx {
+                account_index: h.account_index,
+                api_key_index: h.api_key_index,
+                market_index,
+                initial_margin_fraction,
+                margin_mode,
+                expired_at: h.expired_at,
+                nonce: h.nonce,
+                ..Default::default()
+            })
         })
         .await
     }
@@ -518,33 +732,38 @@ impl LighterCli {
                 "Lighter margin amount {usdc} <= 0"
             )));
         }
-        self.submit(|h| LighterUpdateMarginTx {
-            account_index: h.account_index,
-            api_key_index: h.api_key_index,
-            market_index,
-            usdc_amount,
-            direction: if add {
-                LIGHTER_MARGIN_ADD
-            } else {
-                LIGHTER_MARGIN_REMOVE
-            },
-            expired_at: h.expired_at,
-            nonce: h.nonce,
-            ..Default::default()
+        let direction = if add {
+            LIGHTER_MARGIN_ADD
+        } else {
+            LIGHTER_MARGIN_REMOVE
+        };
+        self.submit(|h| {
+            Ok(LighterUpdateMarginTx {
+                account_index: h.account_index,
+                api_key_index: h.api_key_index,
+                market_index,
+                usdc_amount,
+                direction,
+                expired_at: h.expired_at,
+                nonce: h.nonce,
+                ..Default::default()
+            })
         })
         .await
     }
 
     /// Cancels every open order of the account now; returns the transaction hash.
     pub async fn cancel_all_orders(&self) -> InfraResult<String> {
-        self.submit(|h| LighterCancelAllOrdersTx {
-            account_index: h.account_index,
-            api_key_index: h.api_key_index,
-            time_in_force: LIGHTER_CANCEL_ALL_IMMEDIATE,
-            time: 0,
-            expired_at: h.expired_at,
-            nonce: h.nonce,
-            ..Default::default()
+        self.submit(|h| {
+            Ok(LighterCancelAllOrdersTx {
+                account_index: h.account_index,
+                api_key_index: h.api_key_index,
+                time_in_force: LIGHTER_CANCEL_ALL_IMMEDIATE,
+                time: 0,
+                expired_at: h.expired_at,
+                nonce: h.nonce,
+                ..Default::default()
+            })
         })
         .await
     }
@@ -697,6 +916,24 @@ impl LighterCli {
         Ok(ws_subscribe_msg_lighter(stream, Some(market_id)))
     }
 
+    fn _get_private_sub_msg(&self, channel: &WsChannel) -> InfraResult<String> {
+        let name = lighter_private_channel(channel)?;
+        Ok(ws_private_subscribe_msg_lighter(
+            name,
+            self.auth_ref()?.account_index,
+            &self.auth_token()?,
+        ))
+    }
+
+    fn _get_private_connect_msg(&self, channel: &WsChannel) -> InfraResult<String> {
+        match channel {
+            WsChannel::AccountOrders | WsChannel::AccountPositions | WsChannel::Other(_) => {
+                Ok(self.venue.ws_url().into())
+            },
+            _ => Err(InfraError::Unimplemented),
+        }
+    }
+
     fn _get_public_connect_msg(&self, channel: &WsChannel) -> InfraResult<String> {
         match channel {
             WsChannel::Lob(_) | WsChannel::Trades(_) | WsChannel::Other(_) => {
@@ -727,6 +964,7 @@ mod tests {
     use serde_json::Value;
 
     use super::*;
+    use crate::exchange::lighter::auth::tests::vectors;
 
     fn channel_of(msg: InfraResult<String>) -> String {
         serde_json::from_str::<Value>(&msg.unwrap()).unwrap()["channel"]
@@ -791,6 +1029,60 @@ mod tests {
             cli._get_public_connect_msg(&WsChannel::Trades(None))
                 .unwrap(),
             LIGHTER_WS
+        );
+    }
+
+    #[test]
+    fn private_sub_msgs_sign_a_token_for_the_account() {
+        let mut cli = LighterCli::default();
+        assert!(matches!(
+            cli._get_private_sub_msg(&WsChannel::AccountOrders),
+            Err(InfraError::ApiCliNotInitialized)
+        ));
+        cli.set_auth(LighterAuth::new(758666, 4, &vectors().private_key).unwrap());
+
+        let msg: Value =
+            serde_json::from_str(&cli._get_private_sub_msg(&WsChannel::AccountOrders).unwrap())
+                .unwrap();
+        assert_eq!(msg["channel"], "account_all_orders/758666");
+        let token = msg["auth"].as_str().unwrap();
+        let deadline: u64 = token.split(':').next().unwrap().parse().unwrap();
+        assert!(deadline > get_micros_timestamp() / 1_000_000);
+        assert!(token[token.find(':').unwrap()..].starts_with(":758666:4:"));
+
+        assert_eq!(
+            channel_of(cli._get_private_sub_msg(&WsChannel::AccountPositions)),
+            "account_all_positions/758666"
+        );
+        assert_eq!(
+            channel_of(cli._get_private_sub_msg(&WsChannel::Other("account_all_trades".into()))),
+            "account_all_trades/758666"
+        );
+        assert!(
+            cli._get_private_sub_msg(&WsChannel::Other(LIGHTER_TX_CHANNEL.into()))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn private_connections_use_the_venue_stream() {
+        let mut cli = LighterCli::default();
+        for channel in [
+            WsChannel::AccountOrders,
+            WsChannel::AccountPositions,
+            WsChannel::Other(LIGHTER_TX_CHANNEL.into()),
+        ] {
+            assert_eq!(cli._get_private_connect_msg(&channel).unwrap(), LIGHTER_WS);
+        }
+        assert!(matches!(
+            cli._get_private_connect_msg(&WsChannel::AccountBalAndPos),
+            Err(InfraError::Unimplemented)
+        ));
+        cli.set_venue(LighterVenue::Robinhood);
+        assert_eq!(
+            cli._get_private_connect_msg(&WsChannel::AccountOrders)
+                .unwrap(),
+            LIGHTER_RH_WS
         );
     }
 

@@ -2,16 +2,19 @@ use serde::Deserialize;
 
 use extrema_infra::arch::market_assets::{
     api_data::account_data::OrderDetailData,
-    base_data::{OrderSide, OrderStatus, OrderType, TimeInForce},
+    base_data::{InstrumentType, OrderSide, OrderStatus, OrderType, TimeInForce},
 };
 
 use crate::exchange::lighter::api_utils::lighter_market_to_cli;
 
-/// `GET /api/v1/accountActiveOrders` (auth token in the `authorization` header).
+/// `GET /api/v1/accountActiveOrders`, `accountInactiveOrders` (paged by `next_cursor`) and `accountOrders`
+/// (auth token in the `authorization` header). The websocket order channels push the same order objects.
 #[derive(Clone, Debug, Deserialize)]
 pub struct RestOpenOrdersLighter {
     #[serde(default)]
     pub orders: Vec<OpenOrderLighter>,
+    #[serde(default)]
+    pub next_cursor: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -19,6 +22,9 @@ pub struct OpenOrderLighter {
     pub order_index: i64,
     pub client_order_index: i64,
     pub market_index: u16,
+    /// `perps` or `spot`
+    #[serde(default)]
+    pub market_kind: String,
     pub initial_base_amount: String,
     pub remaining_base_amount: String,
     pub filled_base_amount: String,
@@ -43,8 +49,9 @@ fn num(s: &str) -> f64 {
     s.parse().unwrap_or_default()
 }
 
-/// Lighter order times are seconds (`timestamp`, `updated_at`) except `transaction_time` (microseconds).
-fn to_micros(t: u64) -> u64 {
+/// Lighter order times are seconds (`timestamp`, `updated_at`), trade times milliseconds, `transaction_time`
+/// microseconds.
+pub(crate) fn to_micros(t: u64) -> u64 {
     match t {
         0..1_000_000_000_000 => t * 1_000_000,
         1_000_000_000_000..1_000_000_000_000_000 => t * 1_000,
@@ -64,37 +71,75 @@ pub fn lighter_order_status(status: &str, filled: f64) -> OrderStatus {
 }
 
 impl OpenOrderLighter {
-    pub fn into_order_detail_data(self) -> OrderDetailData {
-        let executed = num(&self.filled_base_amount);
-        let avg = if executed > 0.0 {
+    pub fn side(&self) -> OrderSide {
+        if self.is_ask {
+            OrderSide::SELL
+        } else {
+            OrderSide::BUY
+        }
+    }
+
+    pub fn kind(&self) -> OrderType {
+        match (self.order_type.as_str(), self.time_in_force.as_str()) {
+            ("market", _) => OrderType::Market,
+            (_, "post-only") => OrderType::PostOnly,
+            (_, "immediate-or-cancel") => OrderType::Ioc,
+            ("limit", _) => OrderType::Limit,
+            _ => OrderType::Unknown,
+        }
+    }
+
+    pub fn inst_type(&self) -> InstrumentType {
+        match self.market_kind.as_str() {
+            "spot" => InstrumentType::Spot,
+            _ => InstrumentType::Perpetual,
+        }
+    }
+
+    pub fn executed_size(&self) -> f64 {
+        num(&self.filled_base_amount)
+    }
+
+    /// Average fill price, 0 before the first fill.
+    pub fn avg_price(&self) -> f64 {
+        let executed = self.executed_size();
+        if executed > 0.0 {
             num(&self.filled_quote_amount) / executed
         } else {
             0.0
-        };
+        }
+    }
+
+    pub fn status(&self) -> OrderStatus {
+        lighter_order_status(&self.status, self.executed_size())
+    }
+
+    pub fn cli_order_id(&self) -> Option<String> {
+        (self.client_order_index != 0).then(|| self.client_order_index.to_string())
+    }
+
+    pub fn update_time(&self) -> u64 {
+        to_micros(
+            self.transaction_time
+                .max(self.updated_at)
+                .max(self.timestamp),
+        )
+    }
+
+    pub fn into_order_detail_data(self) -> OrderDetailData {
         OrderDetailData {
             timestamp: to_micros(self.timestamp),
             inst: lighter_market_to_cli(self.market_index),
             order_id: self.order_index.to_string(),
-            cli_order_id: (self.client_order_index != 0)
-                .then(|| self.client_order_index.to_string()),
-            side: if self.is_ask {
-                OrderSide::SELL
-            } else {
-                OrderSide::BUY
-            },
+            cli_order_id: self.cli_order_id(),
+            side: self.side(),
             position_side: None,
-            order_type: match (self.order_type.as_str(), self.time_in_force.as_str()) {
-                ("market", _) => OrderType::Market,
-                (_, "post-only") => OrderType::PostOnly,
-                (_, "immediate-or-cancel") => OrderType::Ioc,
-                ("limit", _) => OrderType::Limit,
-                _ => OrderType::Unknown,
-            },
-            order_status: lighter_order_status(&self.status, executed),
+            order_type: self.kind(),
+            order_status: self.status(),
             price: num(&self.price),
-            avg_price: avg,
+            avg_price: self.avg_price(),
             size: num(&self.initial_base_amount),
-            executed_size: executed,
+            executed_size: self.executed_size(),
             fee: None,
             fee_currency: None,
             reduce_only: Some(self.reduce_only),
@@ -103,11 +148,7 @@ impl OpenOrderLighter {
                 "good-till-time" | "post-only" => TimeInForce::GTD,
                 _ => TimeInForce::Unknown,
             }),
-            update_time: to_micros(
-                self.transaction_time
-                    .max(self.updated_at)
-                    .max(self.timestamp),
-            ),
+            update_time: self.update_time(),
         }
     }
 }

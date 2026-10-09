@@ -308,6 +308,15 @@ mod tests {
         clients.collect()
     }
 
+    fn has_private_ws(client: &PerpDexClients) -> bool {
+        #[cfg(feature = "lighter")]
+        if matches!(client, PerpDexClients::Lighter(_)) {
+            return true;
+        }
+        let _ = client;
+        false
+    }
+
     #[test]
     fn each_variant_reports_its_own_market() {
         for venue in &venues() {
@@ -384,7 +393,7 @@ mod tests {
 
     #[tokio::test]
     async fn private_ws_is_unimplemented_for_public_only_venues() {
-        for client in all_clients().iter().skip(1) {
+        for client in all_clients().iter().skip(1).filter(|c| !has_private_ws(c)) {
             assert!(matches!(
                 client
                     .get_private_connect_msg(&WsChannel::AccountOrders)
@@ -396,6 +405,23 @@ mod tests {
                 Err(InfraError::Unimplemented)
             ));
         }
+    }
+
+    #[cfg(feature = "lighter")]
+    #[tokio::test]
+    async fn lighter_private_ws_dispatches_to_the_lighter_client() {
+        let client = PerpDexClients::Lighter(LighterCli::default());
+        assert_eq!(
+            client
+                .get_private_connect_msg(&WsChannel::AccountOrders)
+                .await
+                .unwrap(),
+            "wss://mainnet.zklighter.elliot.ai/stream"
+        );
+        assert!(matches!(
+            client.get_private_sub_msg(&WsChannel::AccountOrders).await,
+            Err(InfraError::ApiCliNotInitialized)
+        ));
     }
 
     #[tokio::test]

@@ -6,7 +6,7 @@ Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_i
 
 - `PerpDexClients` dispatches over every client and infra's `HyperliquidCli`, so one enum covers Hyperliquid builder DEXes (xyz, EntropyIO's io, Kinetiq's mkts, ...) and the venues here.
 
-Public market data for every venue; Lighter also has the private API (see [Lighter Private API](#lighter-private-api)).
+Public market data for every venue; Lighter also has the private REST and websocket API (see [Lighter Private API](#lighter-private-api)).
 
 ---
 
@@ -171,13 +171,39 @@ Schnorr nonces are random, so the signatures themselves differ from run to run. 
 - `PostOnly` and `Limit` orders rest for 28 days. `Ioc` and `Market` orders carry no expiry.
 - Client order ids are integers below 2^48.
 
-**Acks.** `sendTx` only reports that the sequencer accepted the transaction. Acks are `Live` (or `Canceled` for cancels) with the transaction hash in `msg`. The exchange `order_index` and fills come from `get_open_orders`.
+**Acks.** `sendTx` only reports that the sequencer accepted the transaction. Acks are `Live` (or `Canceled` for cancels) with the transaction hash in `msg`. The exchange `order_index` and fills come from the `AccountOrders` stream or `get_open_orders`.
 
-**Lighter-only calls.** `update_leverage`, `update_margin`, `cancel_all_orders`, `next_nonce`, `auth_token`, `check_api_key`.
+**History.** `get_order_history` pages through the filled, canceled and expired orders of a market, newest first. `get_orders_by_client_ids` looks orders up by client id. `get_fills` and `get_position_funding` return the latest fills and funding payments of the account, and `get_account_limits` its tier and fee ticks.
+
+**Lighter-only calls.** `modify_order`, `update_leverage`, `update_margin`, `cancel_all_orders`, `next_nonce`, `auth_token`, `check_api_key`.
 
 **Nonces.** The nonce is read once from the exchange and counted locally in an atomic shared by clones. It is re-read after any failed send. Auth tokens are signed per call; there are no locks.
 
-**Example.** `cargo run --example lighter_private --features lighter -- @139 orders` checks the key and reads balance and positions. It then places post-only bids 5% below the touch and cancels them, singly and in batches.
+**Websocket.** `get_private_connect_msg` / `get_private_sub_msg` subscribe with a fresh auth token; the exchange checks it only when subscribing.
+
+| task channel | Lighter channel | events |
+|---|---|---|
+| `AccountOrders` | `account_all_orders` | `on_acc_order`: every order a transaction changed; the subscribe reply lists the open orders |
+| `AccountPositions` | `account_all_positions` | `on_acc_pos`, flat positions included |
+| `Other(LIGHTER_WS_ACCOUNT_TRADES)` | `account_all_trades` | `on_ws_other`; `WsAccountTradesLighter::into_fills` |
+| `Other("user_stats")`, any `account_*` name | that channel | `on_ws_other`, raw |
+| `Other(LIGHTER_TX_CHANNEL)` | none | `on_ws_other`; replies parse as `WsSendTxLighter` |
+
+On the `LIGHTER_TX_CHANNEL` connection, transactions go out as `jsonapi/sendtx` frames:
+
+```rust
+let txs = cli.sign_orders(&orders).await?; // or sign_cancels / sign_modify
+handle
+    .send_command(TaskCommand::WsMessage { msg: lighter_ws_send_tx_msg("place-1", &txs[0]), ack: AckHandle::none() }, None)
+    .await?;
+```
+
+A rejected (or lost) transaction leaves a gap that blocks later nonces, so call `invalidate_nonce()`. The next signing then re-reads the nonce. A batch holds at most 15 transactions.
+
+**Examples.**
+
+- `cargo run --example lighter_private --features lighter -- @139 orders` checks the key and reads balance, positions, history and fills. It then places post-only bids 5% below the touch, moves one, and cancels them, singly and in batches.
+- `cargo run --example lighter_private_ws --features lighter -- @139` streams orders, positions and fills, and places, moves and cancels a post-only bid over the websocket.
 
 ---
 

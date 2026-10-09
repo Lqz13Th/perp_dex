@@ -72,6 +72,20 @@
       "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1791520000000,\"Nonce\":16,\"Sig\":\"MyJqDdXc/do0xEGHdzxR+oCtDt21KK+LYGTHtoG+EOAH/O4s6rr9eJBNoTjlQbQASCGW/4MpV55a9WUWrLcEL7GJcwSm5o6nBGLjvssYVUw=\",\"L2TxAttributes\":null}",
       "hash": "9da2e4f99f127a83910442216dbbffc78aaea3714c3fb1412a24126692be8059c9fbe72ec13c01de",
       "signature": "MyJqDdXc/do0xEGHdzxR+oCtDt21KK+LYGTHtoG+EOAH/O4s6rr9eJBNoTjlQbQASCGW/4MpV55a9WUWrLcEL7GJcwSm5o6nBGLjvssYVUw="
+    },
+    {
+      "name": "modify_by_order_index",
+      "tx_type": 17,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":139,\"Index\":39687971468506323,\"BaseAmount\":71,\"Price\":156215,\"TriggerPrice\":0,\"ExpiredAt\":1791520000000,\"Nonce\":17,\"Sig\":\"4GJvOYSJ+rSKUwG7JjZBnz4y2NoSyiO4rFo+cTRob1G0ikloQgRVaCOCr8pGG2CkbAqCW6uRWcTvuSiotKSWSeje0n5LcNL+L2zlyKRlJ1I=\",\"L2TxAttributes\":null}",
+      "hash": "ca764592665080bc582152a2f3e76105c87c12f2649820ba7d99628e3179b30ff9c031adf9448626",
+      "signature": "4GJvOYSJ+rSKUwG7JjZBnz4y2NoSyiO4rFo+cTRob1G0ikloQgRVaCOCr8pGG2CkbAqCW6uRWcTvuSiotKSWSeje0n5LcNL+L2zlyKRlJ1I="
+    },
+    {
+      "name": "modify_by_client_index",
+      "tx_type": 17,
+      "tx_info": "{\"AccountIndex\":758666,\"ApiKeyIndex\":4,\"MarketIndex\":3,\"Index\":281474976710655,\"BaseAmount\":123456,\"Price\":4294967295,\"TriggerPrice\":0,\"ExpiredAt\":1791520000000,\"Nonce\":18,\"Sig\":\"9CCTfb0/9qWApFcFt8dBiQ9lMJk/LyjUDZyXK+8rOOonkrpkwBioN0v8OnmyuFQ9DwHzgIy3yRA7Kuv/t0FDqkMStTUzxWNe1hK0gZNVYm0=\",\"L2TxAttributes\":null}",
+      "hash": "e57eb14eb89f957c1451dd4705e57cbbc940a4a2f0bb8cfee3166f86cb3b80aaac7838a9dbb914e0",
+      "signature": "9CCTfb0/9qWApFcFt8dBiQ9lMJk/LyjUDZyXK+8rOOonkrpkwBioN0v8OnmyuFQ9DwHzgIy3yRA7Kuv/t0FDqkMStTUzxWNe1hK0gZNVYm0="
     }
   ],
   "auth_message": "1791520000:758666:4",
