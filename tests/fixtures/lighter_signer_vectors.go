@@ -95,6 +95,8 @@ func main() {
 	add("update_margin_add", must(types.ConstructUpdateMarginTx(key, chainId, &types.UpdateMarginTxReq{MarketIndex: 139, USDCAmount: 5_000_000, Direction: txtypes.AddToIsolatedMargin}, ops(14))))
 	add("update_margin_large", must(types.ConstructUpdateMarginTx(key, chainId, &types.UpdateMarginTxReq{MarketIndex: 2, USDCAmount: 9_000_000_000_123, Direction: txtypes.RemoveFromIsolatedMargin}, ops(15))))
 	add("cancel_all_immediate", must(types.ConstructL2CancelAllOrdersTx(key, chainId, &types.CancelAllOrdersTxReq{TimeInForce: txtypes.ImmediateCancelAll, Time: 0}, ops(16))))
+	add("modify_by_order_index", must(types.ConstructL2ModifyOrderTx(key, chainId, &types.ModifyOrderTxReq{MarketIndex: 139, Index: 39687971468506323, BaseAmount: 71, Price: 156215, TriggerPrice: 0}, ops(17))))
+	add("modify_by_client_index", must(types.ConstructL2ModifyOrderTx(key, chainId, &types.ModifyOrderTxReq{MarketIndex: 3, Index: 281474976710655, BaseAmount: 123456, Price: 4294967295, TriggerPrice: 0}, ops(18))))
 
 	deadline := time.Unix(1791520000, 0)
 	o.AuthMsg = fmt.Sprintf("%v:%v:%v", deadline.Unix(), acc, idx)

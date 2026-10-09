@@ -23,6 +23,14 @@ pub struct LighterWsTrades<T> {
     pub liquidation_trades: Vec<T>,
 }
 
+/// Account channel frame: every record it carries, flattened into one event.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(untagged)]
+pub enum LighterWsAccountData<T> {
+    Channel(T),
+    Event(LighterWsEvent),
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 pub enum LighterWsEvent {
@@ -47,6 +55,45 @@ pub enum LighterWsControl {
 pub struct LighterWsError {
     pub code: i64,
     pub message: String,
+}
+
+impl LighterWsEvent {
+    fn log(self) {
+        match self {
+            LighterWsEvent::Error { error } => warn!(
+                "Lighter WS error. code = {}, message = {}",
+                error.code, error.message
+            ),
+            LighterWsEvent::Control { kind } => {
+                if !matches!(kind, LighterWsControl::Pong) {
+                    info!("Lighter WS event: {:?}", kind);
+                }
+            },
+        }
+    }
+}
+
+impl<T: DeserializeOwned> LighterWsAccountData<T> {
+    pub(crate) fn decode(frame: &[u8]) -> serde_json::Result<Self> {
+        decode_preferred(frame, Self::Channel)
+    }
+}
+
+impl<T, O> IntoWsData for LighterWsAccountData<T>
+where
+    T: IntoWsData<Output = Vec<O>> + for<'de> Deserialize<'de>,
+{
+    type Output = Vec<O>;
+
+    fn into_ws(self) -> Vec<O> {
+        match self {
+            LighterWsAccountData::Channel(c) => c.into_ws(),
+            LighterWsAccountData::Event(e) => {
+                e.log();
+                Vec::new()
+            },
+        }
+    }
 }
 
 impl<T: DeserializeOwned> LighterWsData<T> {
@@ -76,17 +123,8 @@ where
                 .map(|trade| trade.into_ws())
                 .collect(),
             LighterWsData::Trades(_) => Vec::new(),
-            LighterWsData::Event(LighterWsEvent::Error { error }) => {
-                warn!(
-                    "Lighter WS error. code = {}, message = {}",
-                    error.code, error.message
-                );
-                Vec::new()
-            },
-            LighterWsData::Event(LighterWsEvent::Control { kind }) => {
-                if !matches!(kind, LighterWsControl::Pong) {
-                    info!("Lighter WS event: {:?}", kind);
-                }
+            LighterWsData::Event(e) => {
+                e.log();
                 Vec::new()
             },
         }

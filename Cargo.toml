@@ -1,6 +1,6 @@
 [package]
 name = "perp_dex"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 
 readme = "README.md"
@@ -51,7 +51,7 @@ all = [
     "pacifica",
 ]
 
-lighter = ["dep:base64", "dep:goldilocks-crypto", "dep:poseidon-hash", "reqwest/form"]
+lighter = ["dep:base64", "dep:goldilocks-crypto", "dep:poseidon-hash", "reqwest/form", "reqwest/query"]
 aster = []
 arcus = []
 apex = []
@@ -134,4 +134,8 @@ required-features = ["all"]
 
 [[example]]
 name = "lighter_private"
+required-features = ["lighter"]
+
+[[example]]
+name = "lighter_private_ws"
 required-features = ["lighter"]

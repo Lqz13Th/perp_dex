@@ -6,8 +6,12 @@ use extrema_infra::{
     arch::market_assets::api_general::OrderParams,
     prelude::{
         InfraError, InfraResult, LobFrequency, LobParam, OrderSide, OrderType, TimeInForce,
-        TradesParam,
+        TradesParam, WsChannel,
     },
+};
+
+use super::config_assets::{
+    LIGHTER_TX_CHANNEL, LIGHTER_WS_ACCOUNT_ORDERS, LIGHTER_WS_ACCOUNT_POSITIONS,
 };
 
 /// Lighter frames carry only the market index, so every Lighter instrument is `@<market_id>`.
@@ -38,6 +42,59 @@ pub fn ws_subscribe_msg_lighter(channel: &str, market_id: Option<u16>) -> String
     json!({
         "type": "subscribe",
         "channel": channel,
+    })
+    .to_string()
+}
+
+/// `{channel}/{account}` with the auth token private channels require.
+pub fn ws_private_subscribe_msg_lighter(
+    channel: &str,
+    account_index: i64,
+    auth_token: &str,
+) -> String {
+    json!({
+        "type": "subscribe",
+        "channel": format!("{channel}/{account_index}"),
+        "auth": auth_token,
+    })
+    .to_string()
+}
+
+/// Account channel of a private task: orders, positions, or any `account_*` / `user_stats` channel by name.
+pub fn lighter_private_channel(channel: &WsChannel) -> InfraResult<&str> {
+    match channel {
+        WsChannel::AccountOrders => Ok(LIGHTER_WS_ACCOUNT_ORDERS),
+        WsChannel::AccountPositions => Ok(LIGHTER_WS_ACCOUNT_POSITIONS),
+        WsChannel::Other(name) if name == LIGHTER_TX_CHANNEL => Err(InfraError::ApiCliError(
+            "Lighter transaction websocket sends jsonapi/sendtx frames and needs no subscription"
+                .into(),
+        )),
+        WsChannel::Other(name) => Ok(name),
+        _ => Err(InfraError::Unimplemented),
+    }
+}
+
+/// `jsonapi/sendtx` frame; the reply (or error) echoes `id`.
+pub fn lighter_ws_send_tx_msg(id: &str, tx: &SignedLighterTx) -> String {
+    format!(
+        r#"{{"type":"jsonapi/sendtx","data":{{"id":{},"tx_type":{},"tx_info":{}}}}}"#,
+        json!(id),
+        tx.tx_type,
+        tx.tx_info
+    )
+}
+
+/// `jsonapi/sendtxbatch` frame of at most `LIGHTER_SEND_TX_BATCH_MAX` transactions.
+pub fn lighter_ws_send_tx_batch_msg(id: &str, txs: &[SignedLighterTx]) -> String {
+    let types: Vec<u8> = txs.iter().map(|t| t.tx_type).collect();
+    let infos: Vec<&str> = txs.iter().map(|t| t.tx_info.as_str()).collect();
+    json!({
+        "type": "jsonapi/sendtxbatch",
+        "data": {
+            "id": id,
+            "tx_types": json!(types).to_string(),
+            "tx_infos": json!(infos).to_string(),
+        },
     })
     .to_string()
 }
@@ -105,7 +162,7 @@ pub fn lighter_scaled(value: &str, decimals: u32) -> InfraResult<i64> {
     digits.parse().map_err(|_| err())
 }
 
-/// Market and index (exchange order index, else client order index) of an order to cancel.
+/// Market and index (exchange order index, else client order index) of an order to cancel or modify.
 pub fn lighter_cancel_target(
     inst: &str,
     order_id: Option<&str>,
@@ -194,12 +251,40 @@ pub fn lighter_order_from_params(
     })
 }
 
+/// `ModifyOrder` of a resting order to `size` at `price` (decimal strings scaled exactly, like orders).
+pub fn lighter_modify_from_params(
+    inst: &str,
+    order_id: Option<&str>,
+    cli_order_id: Option<&str>,
+    size: &str,
+    price: &str,
+    scale: LighterMarketScale,
+    header: TxHeader,
+) -> InfraResult<LighterModifyOrderTx> {
+    let (market_index, index) = lighter_cancel_target(inst, order_id, cli_order_id)?;
+    let price = u32::try_from(lighter_scaled(price, scale.price_decimals)?)
+        .map_err(|_| InfraError::ApiCliError(format!("Lighter price {price} out of range")))?;
+    Ok(LighterModifyOrderTx {
+        account_index: header.account_index,
+        api_key_index: header.api_key_index,
+        market_index,
+        index,
+        base_amount: lighter_scaled(size, scale.size_decimals)?,
+        price,
+        trigger_price: 0,
+        expired_at: header.expired_at,
+        nonce: header.nonce,
+        ..Default::default()
+    })
+}
+
 // Transactions sent through `sendTx` / `sendTxBatch`: the signed `tx_info` JSON (field names and order as
 // lighter-go's `json.Marshal`) and the field list each one is hashed over (signing is in `auth`).
 
 pub const LIGHTER_TX_CREATE_ORDER: u8 = 14;
 pub const LIGHTER_TX_CANCEL_ORDER: u8 = 15;
 pub const LIGHTER_TX_CANCEL_ALL_ORDERS: u8 = 16;
+pub const LIGHTER_TX_MODIFY_ORDER: u8 = 17;
 pub const LIGHTER_TX_UPDATE_LEVERAGE: u8 = 20;
 pub const LIGHTER_TX_UPDATE_MARGIN: u8 = 29;
 
@@ -357,6 +442,41 @@ impl LighterTx for LighterCancelOrderTx {
     }
 }
 
+/// New size and price of a resting order; `index` as in [`LighterCancelOrderTx`].
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct LighterModifyOrderTx {
+    pub account_index: i64,
+    pub api_key_index: u8,
+    pub market_index: i16,
+    pub index: i64,
+    pub base_amount: i64,
+    pub price: u32,
+    pub trigger_price: u32,
+    pub expired_at: i64,
+    pub nonce: i64,
+    #[serde(serialize_with = "ser_sig", deserialize_with = "de_sig")]
+    pub sig: Vec<u8>,
+    #[serde(rename = "L2TxAttributes")]
+    pub attributes: NoAttributes,
+}
+
+impl LighterTx for LighterModifyOrderTx {
+    const TX_TYPE: u8 = LIGHTER_TX_MODIFY_ORDER;
+
+    lighter_tx_header!();
+
+    fn body_fields(&self) -> Vec<u64> {
+        vec![
+            self.market_index as u64,
+            self.index as u64,
+            self.base_amount as u64,
+            u64::from(self.price),
+            u64::from(self.trigger_price),
+        ]
+    }
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct LighterCancelAllOrdersTx {
@@ -478,6 +598,66 @@ mod tests {
         let msg: Value =
             serde_json::from_str(&ws_subscribe_msg_lighter("market_stats/all", None)).unwrap();
         assert_eq!(msg["channel"], "market_stats/all");
+    }
+
+    #[test]
+    fn private_subscribe_msg_carries_the_account_and_token() {
+        let msg: Value = serde_json::from_str(&ws_private_subscribe_msg_lighter(
+            "account_all_orders",
+            758666,
+            "1791520000:758666:4:abcd",
+        ))
+        .unwrap();
+        assert_eq!(msg["type"], "subscribe");
+        assert_eq!(msg["channel"], "account_all_orders/758666");
+        assert_eq!(msg["auth"], "1791520000:758666:4:abcd");
+    }
+
+    #[test]
+    fn private_channels_map_to_account_channels() {
+        assert_eq!(
+            lighter_private_channel(&WsChannel::AccountOrders).unwrap(),
+            "account_all_orders"
+        );
+        assert_eq!(
+            lighter_private_channel(&WsChannel::AccountPositions).unwrap(),
+            "account_all_positions"
+        );
+        assert_eq!(
+            lighter_private_channel(&WsChannel::Other("account_all_trades".into())).unwrap(),
+            "account_all_trades"
+        );
+        assert!(matches!(
+            lighter_private_channel(&WsChannel::Other(LIGHTER_TX_CHANNEL.into())),
+            Err(InfraError::ApiCliError(_))
+        ));
+        assert!(matches!(
+            lighter_private_channel(&WsChannel::AccountBalAndPos),
+            Err(InfraError::Unimplemented)
+        ));
+    }
+
+    #[test]
+    fn send_tx_frames_embed_the_signed_json() {
+        let tx = SignedLighterTx {
+            tx_type: LIGHTER_TX_CANCEL_ORDER,
+            tx_info: r#"{"AccountIndex":758666,"Nonce":7}"#.into(),
+            tx_hash: "ab".into(),
+        };
+        let one: Value = serde_json::from_str(&lighter_ws_send_tx_msg("q\"1", &tx)).unwrap();
+        assert_eq!(one["type"], "jsonapi/sendtx");
+        assert_eq!(one["data"]["id"], "q\"1");
+        assert_eq!(one["data"]["tx_type"], 15);
+        assert_eq!(one["data"]["tx_info"]["Nonce"], 7);
+
+        let batch: Value =
+            serde_json::from_str(&lighter_ws_send_tx_batch_msg("b", &[tx.clone(), tx])).unwrap();
+        assert_eq!(batch["type"], "jsonapi/sendtxbatch");
+        assert_eq!(batch["data"]["tx_types"], "[15,15]");
+        let infos: Vec<String> =
+            serde_json::from_str(batch["data"]["tx_infos"].as_str().unwrap()).unwrap();
+        assert_eq!(infos.len(), 2);
+        assert_eq!(infos[0], r#"{"AccountIndex":758666,"Nonce":7}"#);
     }
 
     #[test]
@@ -651,6 +831,43 @@ mod tests {
         assert!(lighter_order_from_params(&big_id, scale, header, 0, 0).is_err());
     }
 
+    #[test]
+    fn modify_params_map_to_modify_fields() {
+        let scale = LighterMarketScale {
+            size_decimals: 4,
+            price_decimals: 2,
+        };
+        let header = TxHeader {
+            account_index: 758666,
+            api_key_index: 4,
+            expired_at: 1_000_599_000,
+            nonce: 17,
+        };
+        let tx = lighter_modify_from_params(
+            "@139",
+            Some("39687971468506323"),
+            None,
+            "0.0071",
+            "1562.15",
+            scale,
+            header,
+        )
+        .unwrap();
+        assert_eq!(
+            (tx.market_index, tx.index, tx.base_amount, tx.price),
+            (139, 39687971468506323, 71, 156215)
+        );
+        assert_eq!(
+            (tx.nonce, tx.expired_at, tx.trigger_price),
+            (17, 1_000_599_000, 0)
+        );
+        assert!(
+            lighter_modify_from_params("@139", None, Some("7"), "0.00715", "1", scale, header)
+                .is_err()
+        );
+        assert!(lighter_modify_from_params("@139", None, None, "1", "1", scale, header).is_err());
+    }
+
     /// Rebuilds every golden transaction from its tx_info, then checks the type, the hash, the exact JSON,
     /// the official signature and a fresh signature of ours.
     fn check<T: LighterTx + for<'de> Deserialize<'de>>(name: &str) {
@@ -706,6 +923,12 @@ mod tests {
         check::<LighterCancelOrderTx>("cancel_by_order_index");
         check::<LighterCancelOrderTx>("cancel_by_client_index");
         check::<LighterCancelAllOrdersTx>("cancel_all_immediate");
+    }
+
+    #[test]
+    fn modifies_match_lighter_go() {
+        check::<LighterModifyOrderTx>("modify_by_order_index");
+        check::<LighterModifyOrderTx>("modify_by_client_index");
     }
 
     #[test]
