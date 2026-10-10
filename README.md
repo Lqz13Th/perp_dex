@@ -35,8 +35,8 @@ Public market data for every venue; Lighter also has the private REST and websoc
 
 ```toml
 [dependencies]
-extrema_infra = { version = "0.5.3", features = ["hyperliquid"] }
-perp_dex = "0.1"
+extrema_infra = { version = "0.6.0", features = ["hyperliquid"] }
+perp_dex = "0.2"
 ```
 
 Register a decoder per venue and declare tasks on its `Market`:

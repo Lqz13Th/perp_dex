@@ -1,6 +1,6 @@
 [package]
 name = "perp_dex"
-version = "0.1.4"
+version = "0.2.0"
 edition = "2024"
 
 readme = "README.md"
@@ -20,7 +20,7 @@ documentation = "https://docs.rs/perp_dex"
 description = "Stock-perp DEX venues for extrema_infra."
 
 [dependencies]
-extrema_infra = { version = "0.5.3", features = ["hyperliquid"] }
+extrema_infra = { version = "0.6.0", features = ["hyperliquid"] }
 futures-util = { version = "0.3.34", optional = true }
 base64 = { version = "0.23.1", optional = true }
 goldilocks-crypto = { version = "=0.1.2", optional = true }
