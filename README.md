@@ -1,12 +1,10 @@
 # Perp DEX
 
-Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_infra).
+Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_infra) 0.6.
 
 - Each venue plugs into infra as an external venue: a `LobWsDecoder` on `Market::Custom(id)` and a client implementing `LobPublicRest` and `LobWebsocket`, laid out like infra's native exchanges.
-
 - `PerpDexClients` dispatches over every client and infra's `HyperliquidCli`, so one enum covers Hyperliquid builder DEXes (xyz, EntropyIO's io, Kinetiq's mkts, ...) and the venues here.
-
-Public market data for every venue; Lighter also has the private REST and websocket API (see [Lighter Private API](#lighter-private-api)).
+- Every venue has public market data: REST tickers, mark prices, books and instruments, plus book and trade streams (and BBO where the venue has one, see [Streams](#streams)). Lighter also has the private REST and websocket API (see [Lighter Private API](#lighter-private-api)).
 
 ---
 
@@ -27,17 +25,29 @@ Public market data for every venue; Lighter also has the private REST and websoc
 
 - Venues whose frames carry only a numeric id use `@<id>`; the venue symbol is in `InstrumentInfo::inst_code`.
 - Each client also returns its raw market list (`get_exchange_info`, `get_markets`, `get_symbols`, ...), with `is_stock()` / `is_equity()` where the venue classifies stocks.
-- Every venue is a feature; `all`, the default, enables them all.
+- `LIGHTER`, `LIGHTER_RH`, `ASTER`, ... are the `Market` constants for each row.
 
 ---
 
-## Usage
+## Install
 
 ```toml
 [dependencies]
 extrema_infra = { version = "0.6.0", features = ["hyperliquid"] }
 perp_dex = "0.2"
 ```
+
+Every venue is a feature (`lighter`, `aster`, `arcus`, `grvt`, `extended`, `edgex`, `apex`, `nado`, `pacifica`); `all`, the default, enables them all. To build only some venues:
+
+```toml
+perp_dex = { version = "0.2", default-features = false, features = ["lighter"] }
+```
+
+`lighter` also pulls in the pure-Rust signer (`goldilocks-crypto`, `poseidon-hash`) for the private API.
+
+---
+
+## Usage
 
 Register a decoder per venue and declare tasks on its `Market`:
 
@@ -73,11 +83,20 @@ handle
     .await?;
 ```
 
-`examples/stock_bbo.rs` puts one stock's BBO from every venue with a per-market BBO stream on one `on_lob`, with each venue's deviation from the median mid:
+For a Hyperliquid builder DEX, use infra's `HyperliquidCli` (or `PerpDexClients::Hyperliquid`) with `set_perp_dex(Some(dex))`, then call `init_inst_index_map()` before any perp REST call or order.
 
-```bash
-cargo run --example stock_bbo -- NVDA 60
-```
+---
+
+## Examples
+
+| example | what it does | run |
+|---|---|---|
+| `stock_bbo` | One stock's BBO from every venue with a per-market BBO stream on one `on_lob`, with each venue's deviation from the median mid | `cargo run --example stock_bbo -- NVDA 60` |
+| `bbo_recorder` | Records every BBO update and trade of a set of stocks from every venue with a BBO stream to `bbo-<start>.csv` / `trades-<start>.csv` | `cargo run --release --example bbo_recorder -- NVDA,TSLA 600 /tmp/perp_dex_bbo` |
+| `lighter_private` | Checks the key; reads balance, positions, history and fills; places post-only bids 5% below the touch, moves one and cancels them, singly and in batches | `cargo run --example lighter_private --features lighter -- @139 orders` |
+| `lighter_private_ws` | Streams orders, positions and fills, and places, moves and cancels a post-only bid over the websocket | `cargo run --example lighter_private_ws --features lighter -- @139` |
+
+The Lighter examples need the credentials of [Lighter Private API](#lighter-private-api) and trade real orders.
 
 ---
 
@@ -95,6 +114,7 @@ cargo run --example stock_bbo -- NVDA 60
 | Nado | `best_bid_offer` | - | `book_depth` (~50 ms) | `trade` |
 | Pacifica | `bbo` | `book` (10 levels, 250 ms) | `book`, snapshots | `trades` |
 
+- Lighter on Robinhood Chain has the same channels as Lighter.
 - `Other(channel)` delivers raw frames of that channel on every venue.
 - Unsupported parameters are an `ApiCliError`.
 - Subscribe replies that replay trade history are not emitted as trades.
@@ -200,10 +220,7 @@ handle
 
 A rejected (or lost) transaction leaves a gap that blocks later nonces, so call `invalidate_nonce()`. The next signing then re-reads the nonce. A batch holds at most 15 transactions.
 
-**Examples.**
-
-- `cargo run --example lighter_private --features lighter -- @139 orders` checks the key and reads balance, positions, history and fills. It then places post-only bids 5% below the touch, moves one, and cancels them, singly and in batches.
-- `cargo run --example lighter_private_ws --features lighter -- @139` streams orders, positions and fills, and places, moves and cancels a post-only bid over the websocket.
+See [Examples](#examples) for `lighter_private` (REST) and `lighter_private_ws` (websocket).
 
 ---
 
