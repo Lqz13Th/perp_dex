@@ -33,7 +33,7 @@ Stock-perp DEX venues for [`extrema_infra`](https://github.com/Lqz13Th/extrema_i
 
 ```toml
 [dependencies]
-extrema_infra = { version = "0.6.0", features = ["hyperliquid"] }
+extrema_infra = { version = "0.6.2", features = ["hyperliquid"] }
 perp_dex = "0.2"
 ```
 
